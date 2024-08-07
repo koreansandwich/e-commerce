@@ -1,5 +1,5 @@
 import React from "react";
-import { Formik, Form, Field } from 'formik';
+import {Formik, Form, Field, ErrorMessage} from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import './LoginForm.css';
@@ -10,8 +10,8 @@ const LoginSchema = Yup.object().shape({
 });
 
 const LoginForm = () => (
-    <div>
-    <h1>Login</h1>
+    <div className="login-form-container">
+        <h1>Log in to <span className="brand">E-Commerce</span> </h1>
     <Formik
         initialValues={{ email: '', password: '' }}
         validationSchema={LoginSchema}
@@ -29,13 +29,20 @@ const LoginForm = () => (
     >
         {({ isSubmitting }) => (
             <Form>
-                <Field type = "email" name = "email" placeholder="Email" />
-                <Field type = "password" name = "password" placeholder="Password" />
+                <div className="form-field">
+                    <Field type = "email" name = "email" placeholder="Email" />
+                </div>
+                <div className="form-field">
+                    <Field type = "password" name = "password" placeholder="Password" />
+                </div>
                 <button type="submit" disabled={isSubmitting}>
                     Login</button>
             </Form>
         )}
     </Formik>
+        <div className="form-footer">
+            <a href="/signup">회원가입 하기</a>
+        </div>
     </div>
 );
 
