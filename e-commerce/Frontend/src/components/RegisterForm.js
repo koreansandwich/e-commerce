@@ -36,7 +36,7 @@ const RegisterForm = () => {
                 validationSchema={RegisterSchema}
                 onSubmit={(values, {setSubmitting}) => {
                     const {confirmPassword, ...data} = values;
-                    axios.post('http://localhost:5000/register', data)
+                    axios.post('http://localhost:8080/api/auth/register', data)
                         .then((response) => {
                             console.log(response.data);
                             setSubmitting(false);
