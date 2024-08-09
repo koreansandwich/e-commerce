@@ -32,7 +32,7 @@ class UserServiceTest {
         User user = new User();
         user.setName("TestUser");
         user.setEmail("test@example.com");
-        user.setPassword("password");
+        user.setPassword("password123");
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(null);
 
@@ -52,7 +52,7 @@ class UserServiceTest {
         User user = new User();
         user.setName("TestUser");
         user.setEmail("test@example.com");
-        user.setPassword("password");
+        user.setPassword("password123");
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
 

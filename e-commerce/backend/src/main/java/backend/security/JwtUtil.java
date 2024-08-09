@@ -3,6 +3,7 @@ package backend.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,10 @@ public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secretKey;
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
@@ -30,7 +35,11 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()  // parserBuilder()를 사용하여 JwtParserBuilder를 생성
+                .setSigningKey(secretKey)  // secretKey를 설정
+                .build()  // JwtParser를 빌드
+                .parseClaimsJws(token)  // JWT 토큰을 파싱하여 Claims를 얻음
+                .getBody();
     }
 
     private Boolean isTokenExpired(String token) {
