@@ -44,22 +44,13 @@ public class UserController {
         }
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(username);
-        if (user == null) {
-            throw new UsernameNotFoundException(username);
-        }
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), new ArrayList<>());
-    }
-
     @PostMapping("/login")
     public String loginUser(@RequestBody User user) {
         try {
 
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
 
-            final CustomUserDetailService customUserDetailService = userService.loadUserByUsername(user.getEmail());
+            final UserDetails userDetails = customUserDetailService.loadUserByUsername(user.getEmail());
 
             final String jwt = jwtTUtil.generateToken(userDetails.getUsername());
 
