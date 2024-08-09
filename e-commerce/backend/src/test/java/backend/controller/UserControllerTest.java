@@ -1,5 +1,6 @@
 package backend.controller;
 import backend.entity.User;
+import backend.service.CustomUserDetailService;
 import backend.service.UserService;
 import backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserControllerTest {
@@ -36,14 +39,58 @@ class UserControllerTest {
     @Mock
     private JwtUtil jwtUtil;
 
+    @Mock
+    private CustomUserDetailService customUserDetailService;
+
     @InjectMocks
     private UserController userController;
 
-    @Test
-    void registerUser() {
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
     }
 
     @Test
-    void loginUser() {
+    void test_registerUser_success() throws Exception {
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPassword("password123");
+
+        doNothing().when(userService).registerUser(any(User.class));
+
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"test@example.com\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("User registered successfully."));
+
+        verify(userService, times(1)).registerUser(any(User.class));
+    }
+
+    @Test
+    void test_loginUser_success() throws Exception {
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPassword("password123");
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).
+                thenReturn(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+
+        when(customUserDetailService.loadUserByUsername(user.getEmail()))
+                .thenReturn(new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), new ArrayList<>()));
+
+        when(jwtUtil.generateToken(any())).thenReturn("token");
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"test@example.com\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("token"));
+
+        verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(customUserDetailService, times(1)).loadUserByUsername(user.getEmail());
+        verify(jwtUtil, times(1)).generateToken(any());
+
     }
 }

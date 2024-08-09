@@ -38,7 +38,7 @@ public class UserController {
     public String registerUser(@RequestBody User user) {
         try {
             userService.registerUser(user);
-            return "User registered successfully. Please check your email";
+            return "User registered successfully.";
         } catch (IllegalArgumentException e) {
             return e.getMessage();
         }
@@ -56,7 +56,8 @@ public class UserController {
 
             return jwt;
         } catch (Exception e) {
-            return "Invalid username or password";
+            e.printStackTrace();  // 콘솔에 전체 스택 트레이스를 출력
+            return "An unexpected error occurred: " + e.getMessage();  // 예외 메시지를
         }
     }
 }
