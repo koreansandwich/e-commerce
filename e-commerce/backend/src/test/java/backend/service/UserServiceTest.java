@@ -63,6 +63,7 @@ class UserServiceTest {
         assertEquals("Email already registered", exception.getMessage());
     }
 
+    @Test
     void test_authenticateUser_success() {
         String rawPassword = "password123";
         String encodedPassword = "encodedPassword";

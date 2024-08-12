@@ -3,6 +3,7 @@ import {BrowserRouter as Router, Link, Route, Routes} from "react-router-dom";
 import LoginForm from "./components/LoginForm";
 import './App.css';
 import RegisterForm from "./components/RegisterForm";
+import SuccessPage from "./components/SuccessPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
                   <Route path="/login" element={<LoginForm/>} />
                     <Route path="/register" element={<RegisterForm/>} />
                   <Route path="/" element={<React.Fragment><h1>Welcome to React App</h1></React.Fragment>} />
+                    <Route path="/success" element={<SuccessPage/>} />
                     <Route path="*" element={<React.Fragment><h1>404: Page Not Found</h1></React.Fragment>} />
                 </Routes>
               </header>

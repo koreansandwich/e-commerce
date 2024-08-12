@@ -21,12 +21,16 @@ const LoginForm = () => (
                         console.log(response.data);
                         setSubmitting(false);
 
-                        if (response.status === 200 && response.data.success) {  // 응답 상태 코드와 데이터 확인
-                            window.location.href = '/';
+                        if (response.status === 200 && response.data.success) {
+                            const token = `Bearer ${response.data.token}`;
+                            localStorage.setItem('token', token);// 응답 상태 코드와 데이터 확인
+                            console.log("Login successful, token stored:", token);
+                            window.location.href = '/success';
                         } else {
                             console.error("Login failed");
                             window.location.href = '/register';
                         }
+
                     })
                     .catch((error) => {
                         console.log(error);

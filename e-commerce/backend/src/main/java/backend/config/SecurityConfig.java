@@ -46,7 +46,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/h2-console/**", "/api/auth/register", "/api/auth/login").permitAll() // H2 콘솔 및 회원가입 엔드포인트 허용
+                        .requestMatchers("/h2-console/**", "/api/auth/register", "/api/auth/login", "api/auth").permitAll() // H2 콘솔 및 회원가입 엔드포인트 허용
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
