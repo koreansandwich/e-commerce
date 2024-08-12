@@ -1,6 +1,7 @@
 package backend.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.Setter;
@@ -21,6 +22,10 @@ public class JwtUtil {
         this.secretKey = secretKey;
     }
 
+    public String getSecretKey() {
+        return secretKey;
+    }
+
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -35,10 +40,10 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()  // parserBuilder()를 사용하여 JwtParserBuilder를 생성
-                .setSigningKey(secretKey)  // secretKey를 설정
-                .build()  // JwtParser를 빌드
-                .parseClaimsJws(token)  // JWT 토큰을 파싱하여 Claims를 얻음
+        return Jwts.parser()
+                .setSigningKey(secretKey) // secretKey를 설정
+                .build() // JwtParser를 빌드
+                .parseClaimsJws(token) // JWT 토큰을 파싱하여 Claims를 얻음
                 .getBody();
     }
 
@@ -54,14 +59,18 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() +  1000 * 60 * 60 * 10))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        } catch (ExpiredJwtException e) {
+            return false; // 토큰이 만료된 경우 false를 반환
+        }
     }
 
 }
