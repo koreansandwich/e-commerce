@@ -18,20 +18,22 @@ import java.util.ArrayList;
 @RequestMapping("api/auth")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtTUtil;
+    private final CustomUserDetailService customUserDetailService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private JwtUtil jwtTUtil;
-
-    @Autowired
-    private CustomUserDetailService customUserDetailService;
-
-    @Autowired
-    private UserRepository userRepository;
+    public UserController(UserService userService,
+                          AuthenticationManager authenticationManager,
+                          JwtUtil jwtTUtil,
+                          CustomUserDetailService customUserDetailService,
+                          UserRepository userRepository) {
+        this.userService = userService;
+        this.authenticationManager = authenticationManager;
+        this.jwtTUtil = jwtTUtil;
+        this.customUserDetailService = customUserDetailService;
+    }
 
 
     @PostMapping("/register")

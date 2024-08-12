@@ -63,5 +63,43 @@ class UserServiceTest {
         assertEquals("Email already registered", exception.getMessage());
     }
 
+    void test_authenticateUser_success() {
+        String rawPassword = "password123";
+        String encodedPassword = "encodedPassword";
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPassword(encodedPassword);
 
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
+
+        boolean isAuthenticated = userService.authenticateUser(user.getEmail(), rawPassword);
+
+        assertTrue(isAuthenticated);
+    }
+
+    @Test
+    void test_authenticateUser_failure() {
+        String rawPassword = "password123";
+        String encodedPassword = "encodedPassword";
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPassword(encodedPassword);
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(false);
+
+        boolean isAuthenticated = userService.authenticateUser(user.getEmail(), rawPassword);
+
+        assertFalse(isAuthenticated);
+    }
+
+    @Test
+    void test_authenticateUser_userNotFound() {
+        when(userRepository.findByEmail("test@example.com")).thenReturn(null);
+
+        boolean isAuthenticated = userService.authenticateUser("test@example.com", "password123");
+
+        assertFalse(isAuthenticated);
+    }
 }
