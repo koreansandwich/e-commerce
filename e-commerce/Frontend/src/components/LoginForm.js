@@ -16,13 +16,13 @@ const LoginForm = () => (
             initialValues={{ email: '', password: '' }}
             validationSchema={LoginSchema}
             onSubmit={(values, { setSubmitting }) => {
-                axios.post('http://localhost:8080/login', values)
+                axios.post('http://localhost:8080/api/auth/login', values)
                     .then((response) => {
                         console.log(response.data);
                         setSubmitting(false);
 
-                        if (response.status === 200 && response.data.success) {
-                            const token = `Bearer ${response.data.token}`;
+                        if (response.status === 200) {
+                            const token = `Bearer ${response.data}`;
                             localStorage.setItem('token', token);// 응답 상태 코드와 데이터 확인
                             console.log("Login successful, token stored:", token);
                             window.location.href = '/success';

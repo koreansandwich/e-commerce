@@ -4,27 +4,40 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.Setter;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secretKey;
+    private Key secretKey;
 
-    public void setSecretKey(String secretKey) {
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @PostConstruct
+    public void init() {
+        if (secret == null || secret.isEmpty() || secret.getBytes().length < 32) {
+            // secret이 설정되지 않았거나 충분한 길이가 아닌 경우 안전한 키를 생성
+            this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        } else {
+            // secret이 설정된 경우 해당 값을 사용하여 키를 생성 (길이가 충분한 경우에만)
+            this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+        }
+    }
+
+    //테스트용 코드
+    public void setSecretKey(Key secretKey) {
         this.secretKey = secretKey;
     }
 
-    public String getSecretKey() {
-        return secretKey;
-    }
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
@@ -59,8 +72,8 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() +  1000 * 60 * 60 * 10))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10시간 유효
+                .signWith(secretKey) // secretKey를 사용하여 서명
                 .compact();
     }
 
@@ -72,5 +85,4 @@ public class JwtUtil {
             return false; // 토큰이 만료된 경우 false를 반환
         }
     }
-
 }
