@@ -39,6 +39,7 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'com.h2database:h2:2.3.232'
+	implementation 'org.json:json:20240303'
 }
 
 

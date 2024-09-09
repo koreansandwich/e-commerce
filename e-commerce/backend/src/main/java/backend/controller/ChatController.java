@@ -7,6 +7,7 @@ import backend.service.ChatService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -28,22 +29,23 @@ public class ChatController {
     }
 
     @PostMapping("/send")
-    public ChatMessage sendMessage(@RequestBody String message, Authentication authentication) {
+    public ChatMessage sendUserMessage(@RequestBody String message, Authentication authentication) {
         User user = getUserFromAuthentication(authentication);
 
         ChatMessage userMessage = chatService.saveUserMessage(user.getId(), message);
-        String botResponse = generateBotResponse(message);
-        chatService.saveBotMessage(user.getId(), botResponse);
-
         return userMessage;
+    }
+
+    @PostMapping
+    public ChatMessage getBotResponse(@RequestBody String message, Authentication authentication) {
+        User user = getUserFromAuthentication(authentication);
+
+        ChatMessage botMessage = chatService.saveBotMessage(user.getId(), message);
+        return botMessage;
     }
 
     private User getUserFromAuthentication(Authentication authentication) {
         String email = authentication.getName();
         return userRepository.findByEmail(email);
-    }
-
-    private String generateBotResponse(String message) {
-        return "This is a bot response to your message: " + message;
     }
 }
