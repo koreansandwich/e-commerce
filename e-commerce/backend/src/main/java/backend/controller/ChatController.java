@@ -1,5 +1,6 @@
 package backend.controller;
 
+import backend.DTO.MessageDTO;
 import backend.entity.ChatMessage;
 import backend.repository.UserRepository;
 import backend.entity.User;
@@ -29,17 +30,19 @@ public class ChatController {
     }
 
     @PostMapping("/send")
-    public ChatMessage sendUserMessage(@RequestBody String message, Authentication authentication) {
+    public ChatMessage sendUserMessage(@RequestBody MessageDTO messageDTO, Authentication authentication) {
         User user = getUserFromAuthentication(authentication);
 
+        String message = messageDTO.getText();
         ChatMessage userMessage = chatService.saveUserMessage(user.getId(), message);
         return userMessage;
     }
 
-    @PostMapping
-    public ChatMessage getBotResponse(@RequestBody String message, Authentication authentication) {
+    @PostMapping("/bot-response")
+    public ChatMessage getBotResponse(@RequestBody MessageDTO messageDTO, Authentication authentication) {
         User user = getUserFromAuthentication(authentication);
 
+        String message = messageDTO.getText();
         ChatMessage botMessage = chatService.saveBotMessage(user.getId(), message);
         return botMessage;
     }

@@ -11,7 +11,7 @@ const ChatbotInterface = () => {
         const token = localStorage.getItem("token");
         axios
             .get("http://localhost:8080/api/chat/history?days=7", {
-                headers: { Authorization: `Bearer ${token}` } // 템플릿 리터럴 수정
+                headers: {Authorization: `Bearer ${token}`} // 템플릿 리터럴 수정`
             })
             .then((response) => {
                 setChatHistory(response.data); // 서버에서 받은 대화 기록을 설정
@@ -26,6 +26,12 @@ const ChatbotInterface = () => {
         const token = localStorage.getItem("token");
         const newMessage = { text: message, sender: "user" };
 
+        // 빈 메시지를 전송하지 않도록 방지
+        if (!message.trim()) {
+            console.error("Cannot send an empty message");
+            return;
+        }
+
         setChatHistory([...chatHistory, newMessage]); // 새로운 메시지를 대화 기록에 추가
 
         axios
@@ -33,15 +39,25 @@ const ChatbotInterface = () => {
                 headers: { Authorization: `Bearer ${token}` }, // 템플릿 리터럴 수정
             })
             .then((response) => {
+                console.log("response.data:" + response.data);
+                console.log("User message sent. Now Requesting bot response...");
+
+                return axios.post("http://localhost:8080/api/chat/bot-response", newMessage, {
+                    headers: {Authorization: `Bearer ${token}`},
+                });
+            })
+            .then((response) => {
+                console.log("Bot Response: ", response.data.message);
+
                 setChatHistory((prevHistory) => [
                     ...prevHistory,
-                    { text: response.data, sender: "bot" }, // 봇의 응답을 대화 기록에 추가
+                    { text: response.data.message, sender: "bot" }, // 봇의 응답을 대화 기록에 추가
                 ]);
-                setMessage(""); // 입력 필드 초기화
             })
             .catch((error) => {
                 console.error("Failed to send message:", error);
             });
+        setMessage(""); // 입력 필드 초기화
     };
 
     return (

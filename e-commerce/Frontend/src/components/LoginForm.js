@@ -22,7 +22,7 @@ const LoginForm = () => (
                         setSubmitting(false);
 
                         if (response.status === 200) {
-                            const token = `Bearer ${response.data}`;
+                            const token = response.data;
                             localStorage.setItem('token', token);// 응답 상태 코드와 데이터 확인
                             console.log("Login successful, token stored:", token);
                             window.location.href = '/chatbot';

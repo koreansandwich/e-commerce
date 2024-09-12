@@ -1,11 +1,13 @@
 package backend.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "chat_messages")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatMessage {
 
     @Id
@@ -34,43 +36,49 @@ public class ChatMessage {
         this.timestamp = timestamp;
     }
 
+    // Getter Methods
+    @JsonProperty("id")
     public long getId() {
         return id;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    @JsonProperty("message")
+    public String getMessage() {
+        return message;
+    }
+
+    @JsonProperty("sender")
+    public String getSender() {
+        return sender;
+    }
+
+    @JsonProperty("timestamp")
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getMessage() {
-        return message;
+    // Setter Methods
+    public void setId(long id) {
+        this.id = id;
     }
 
     public void setMessage(String message) {
         this.message = message;
     }
 
-    public String getSender() {
-        return sender;
-    }
-
     public void setSender(String sender) {
         this.sender = sender;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

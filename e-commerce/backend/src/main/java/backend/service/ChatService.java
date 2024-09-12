@@ -20,6 +20,7 @@ public class ChatService {
     private final UserRepository userRepository;
     private final String OPENAI_API_KEY = System.getenv("OPENAI_API_KEY");
 
+
     public ChatService(ChatMessageRepository chatMessageRepository, UserRepository userRepository) {
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
@@ -37,6 +38,8 @@ public class ChatService {
         chatMessage.setMessage(message);
         chatMessage.setSender("user");
         chatMessage.setTimestamp(LocalDateTime.now());
+
+        System.out.println("chatMessage : " + chatMessage);
 
         return chatMessageRepository.save(chatMessage);
     }
@@ -60,14 +63,26 @@ public class ChatService {
         requestBody.put("max_tokens", 150);
         requestBody.put("temperature", 0.7);
 
+        System.out.println("Using API Key: " + OPENAI_API_KEY);
+
+        // Request Body를 출력해서 확인
+        System.out.println("Request Body: " + requestBody.toString());
+
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
+
+        System.out.println("Sending request to OpenAI API...");
 
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
+
+            System.out.println("OpenAI API Response: " + response.getBody());
+
             JSONObject responseBody = new JSONObject(response.getBody());
             String botResponse = responseBody.getJSONArray("choices").getJSONObject(0)
                     .getJSONObject("message").getString("content").trim();
+
+            System.out.println("Extracted Bot Response: " + botResponse);
 
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setUser(user);
@@ -77,6 +92,7 @@ public class ChatService {
 
             return chatMessageRepository.save(chatMessage);
         } else {
+            System.out.println("Failed to request from OpenAI. Status Code: " + response.getStatusCode());
             throw new RuntimeException("Failed to request from OpenAI");
         }
     }

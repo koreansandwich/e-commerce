@@ -51,8 +51,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 System.out.println("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
                 System.out.println("Expired JWT Token");
-            } catch (SignatureException | MalformedJwtException e) {
-                System.out.println("Invalid JWT Token");
+            } catch (SignatureException e) {
+                System.out.println("Invalid JWT Token 1");
+            } catch (MalformedJwtException e) {
+                System.out.println("Invalid JWT Token 2");
             }
         } else {
             if (requestTokenHeader == null) {
