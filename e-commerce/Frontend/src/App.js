@@ -4,6 +4,7 @@ import LoginForm from "./components/LoginForm";
 import './App.css';
 import RegisterForm from "./components/RegisterForm";
 import ChatbotInterface from "./components/ChatbotInterface";
+import Dashboard from "./components/Dashboard"; // Dashboard 컴포넌트 추가
 
 function App() {
     return (
@@ -61,7 +62,7 @@ function AppContent() {
                 <Routes>
                     <Route path="/login" element={<LoginForm />} />
                     <Route path="/register" element={<RegisterForm />} />
-                    <Route path="/" element={<React.Fragment><h1>Welcome to React App</h1></React.Fragment>} />
+                    <Route path="/dashboard" element={<Dashboard />} /> {/* 대시보드 경로 추가 */}
                     <Route path="/chatbot" element={<ChatbotInterface />} />
                     <Route path="*" element={<React.Fragment><h1>404: Page Not Found</h1></React.Fragment>} />
                 </Routes>

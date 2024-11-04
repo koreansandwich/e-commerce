@@ -74,3 +74,31 @@
 .register-form-container .form-footer a:hover {
     text-decoration: underline; /* 호버 시 밑줄 표시 */
 }
+
+/* 성별 선택 버튼 스타일 */
+.gender-select {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.gender-button {
+    padding: 10px 20px;
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.gender-button.selected {
+    background-color: #6c63ff;
+    color: #fff;
+    border: none;
+}
+
+.gender-button:hover {
+    background-color: #bdbdbd;
+}
+

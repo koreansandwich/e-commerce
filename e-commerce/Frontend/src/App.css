@@ -1,3 +1,14 @@
+@font-face {
+  font-family: 'BMHANNAAir';
+  src: url('./assets/font/BMHANNAAir_ttf.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'BMHANNAAir', sans-serif;
+}
+
 .App {
   text-align: center;
   background: linear-gradient(to bottom, #6c63ff, #c6bffb); /* 배경을 그라디언트로 설정 */
