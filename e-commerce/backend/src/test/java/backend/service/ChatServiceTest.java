@@ -43,6 +43,7 @@ class ChatServiceTest {
         mockUser.setPassword("password123");
     }
 
+
     @Test
     public void testGetChatHistory() {
         ChatMessage message1 = new ChatMessage(mockUser, "Hello", "user", null);
