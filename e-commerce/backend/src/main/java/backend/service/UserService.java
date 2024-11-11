@@ -5,6 +5,9 @@ import backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.Period;
+
 @Service
 public class UserService {
 
@@ -24,9 +27,17 @@ public class UserService {
             throw new IllegalArgumentException("Email already registered");
         }
 
+        if (user.getBirthDate() != null) {
+            int age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
+            user.setAge(age);
+        }
+
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         userRepository.save(user);
+
+
     }
 
     public boolean authenticateUser(String email, String rawPassword) {
