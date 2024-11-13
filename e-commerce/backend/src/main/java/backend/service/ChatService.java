@@ -6,6 +6,7 @@ import backend.entity.User;
 import backend.repository.ChatMessageRepository;
 import backend.repository.UserRepository;
 import io.github.cdimascio.dotenv.Dotenv;
+import lombok.Value;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.*;
@@ -22,11 +23,13 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final String OPENAI_API_KEY;
+    private final KeywordExtractor keywordExtractor;
 
 
-    public ChatService(ChatMessageRepository chatMessageRepository, UserRepository userRepository) {
+    public ChatService(ChatMessageRepository chatMessageRepository, UserRepository userRepository, KeywordExtractor keywordExtractor) {
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
+        this.keywordExtractor = keywordExtractor;
         Dotenv dotenv = Dotenv.load();
         this.OPENAI_API_KEY = dotenv.get("OPENAI_API_KEY");
         System.out.println("OPENAI_API_KEY: " + OPENAI_API_KEY);
@@ -37,7 +40,10 @@ public class ChatService {
     }
 
     public ChatMessage saveUserMessage(Long userId, String message) {
+        System.out.println("Entering saveUserMessage method with userId: " + userId + " and message: " + message);
+
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("User found: " + user.getEmail());
 
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setUser(user);
@@ -45,13 +51,31 @@ public class ChatService {
         chatMessage.setSender("user");
         chatMessage.setTimestamp(LocalDateTime.now());
 
-        //Step1. 키워드 추출 및 추천 시스템 호출
+        // Step 1. GPT를 통한 키워드 및 추천 유형 추출
+        Map<String, Object> analysisResult = keywordExtractor.analyzeMessageWithGPT(message);
+        System.out.println("Analysis Result: " + analysisResult);
 
-        Map<String, Integer> keywordScores = KeywordExtractor.extractKeywordsWithScore(message);
-        System.out.println(keywordScores);
+        String recommendationType = (String) analysisResult.get("recommendationType");
 
-        // 추천 시스템과의 통신에 대한 로직
 
+        if ("키워드 추천".equals(recommendationType)) {
+            // 키워드 추천 처리 로직
+            @SuppressWarnings("unchecked")
+            Map<String, Integer> keywordScores = (Map<String, Integer>) analysisResult.get("keywords");
+            System.out.println("Extracted Keywords and Scores: " + keywordScores);
+
+            // 키워드 추천 관련 시스템 호출 로직 추가
+
+        } else if ("유사 추천".equals(recommendationType)) {
+            // 유사 제품 추천 처리 로직
+            String productName = (String) analysisResult.get("productName");
+            System.out.println("Extracted Product Name for Similar Recommendation: " + productName);
+
+            // 유사 제품 추천 관련 시스템 호출 로직 추가
+        }
+
+        ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
+        System.out.println("Chat message saved with ID: " + savedMessage.getId());
 
         return chatMessageRepository.save(chatMessage);
     }
@@ -66,6 +90,8 @@ public class ChatService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(OPENAI_API_KEY);
+
+        System.out.println("Authorization Header: Bearer " + OPENAI_API_KEY);
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("model", "gpt-3.5-turbo");

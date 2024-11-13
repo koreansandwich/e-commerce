@@ -1,52 +1,132 @@
 package backend.service;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+@Service
 public class KeywordExtractor {
 
-    private static final Map<String, String[]> keywordsList = new HashMap<>();
+    @Value("${openai.api.key}")
+    private String OPENAI_API_KEY;
 
-    static {
-        keywordsList.put("수분", new String[]{"수분많은", "수분없는"});
-        keywordsList.put("유분", new String[]{"유분많은", "유분없는"});
-        keywordsList.put("보습", new String[]{"보습잘되는", "보습안되는"});
-        keywordsList.put("속건조", new String[]{"속건조에효과있는", "속건조에효과없는"});
-        keywordsList.put("자극", new String[]{"자극있는", "자극없는"});
-        keywordsList.put("진정", new String[]{"진정되는", "진정안되는"});
-        keywordsList.put("탄력", new String[]{"탄력생기는", "탄력안생기는"});
-        keywordsList.put("윤기", new String[]{"윤기나는", "윤기나지않는"});
-        keywordsList.put("트러블", new String[]{"트러블생기는", "트러블생기지않는"});
-        keywordsList.put("트러블개선", new String[]{"트러블없어지는", "트러블없어지지않는"});
-        keywordsList.put("미백효과", new String[]{"미백효과있는", "미백효과없는"});
-        keywordsList.put("피부톤개선", new String[]{"피부톤이개선되는", "피부톤이개선되지않는"});
-        keywordsList.put("피부결개선", new String[]{"피부결좋아지는", "피부결이좋아지지않는"});
-        keywordsList.put("주름개선", new String[]{"주름없어지는", "주름안없어지는"});
-        keywordsList.put("모공관리", new String[]{"모공관리되는", "모공관리안되는"});
-        keywordsList.put("각질제거", new String[]{"각질제거잘되는", "각질제거안되는"});
-        keywordsList.put("흡수력", new String[]{"흡수잘되는", "흡수안되는"});
-        keywordsList.put("무게감", new String[]{"무거운", "가벼운"});
-        keywordsList.put("밀림", new String[]{"밀림있는", "밀림없는"});
-        keywordsList.put("흘러내림", new String[]{"흘러내리는", "흘러내리지않는"});
-        keywordsList.put("미끌거림", new String[]{"미끌거리는", "미끌거리지않는"});
-        keywordsList.put("끈적임", new String[]{"끈적이는", "끈적이지않는"});
-        keywordsList.put("향", new String[]{"향이좋은", "향이별로인"});
-        keywordsList.put("양", new String[]{"양많은", "양적은"});
+    private final RestTemplate restTemplate;
+
+    private static final List<String> keywordsList = Arrays.asList(
+            "수분", "유분", "보습", "속건조", "자극", "진정", "탄력",
+            "윤기", "트러블", "트러블개선", "미백효과", "피부톤개선",
+            "피부결개선", "주름개선", "모공관리", "각질제거", "흡수력",
+            "무게감", "밀림", "흘러내림", "미끌거림", "끈적임", "향", "양"
+    );
+
+    public KeywordExtractor() {
+        this.restTemplate = new RestTemplate();
     }
 
-    public static Map<String, Integer> extractKeywordsWithScore(String userMessage) {
-        Map<String, Integer> keywordScores = new HashMap<>();
+    private String createPrompt(String userMessage) {
+        StringBuilder keywordPrompt = new StringBuilder("사용자의 메시지를 분석하여 추천 유형과 세부 정보를 추출하세요.\n");
+        keywordPrompt.append("1. 추천 유형: '키워드를 통한 제품 추천' 또는 '유사한 제품을 통한 제품 추천' 중 하나로 분류하세요.\n");
+        keywordPrompt.append("2. 추천 유형이 '키워드를 통한 제품 추천'일 경우:\n");
+        keywordPrompt.append("   - 메시지에서 관련 있는 모든 키워드를 추출하고, 각 키워드에 대해 긍정은 1, 부정은 -1로 매핑하여 JSON 형식으로 반환하세요.\n");
+        keywordPrompt.append("   - JSON 형식 예시: {추천 유형: '키워드 추천', 키워드: {키워드1: 스코어, 키워드2: 스코어, ...}}\n");
 
-        for (Map.Entry<String, String[]> entry : keywordsList.entrySet()) {
-            String keyword = entry.getKey();
-            String[] options = entry.getValue();
-
-            if (userMessage.contains(options[0])) {
-                keywordScores.put(keyword, 1);
-            } else if (userMessage.contains(options[1])) {
-                keywordScores.put(keyword, -1);
-            }
+        for (String keyword : keywordsList) {
+            keywordPrompt.append("   - ").append(keyword).append("\n");
         }
-        return keywordScores;
+
+        keywordPrompt.append("3. 추천 유형이 '유사한 제품을 통한 제품 추천'일 경우:\n");
+        keywordPrompt.append("   - 메시지에서 제품명을 추출하여 JSON 형식으로 {추천 유형: '유사 추천', 제품명: '추출된 제품명'} 형태로 반환하세요.\n");
+
+        String prompt = keywordPrompt.toString() + "\n사용자 메시지: \"" + userMessage + "\"\n" + "결과를 JSON 형식으로 반환합니다: 추천 유형과 관련 데이터.\n";
+        System.out.println("Generated Prompt: " + prompt);
+        return prompt;
     }
+
+    public Map<String, Object> analyzeMessageWithGPT(String userMessage) {
+        String apiUrl = "https://api.openai.com/v1/chat/completions";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(OPENAI_API_KEY);
+
+        String prompt = createPrompt(userMessage);
+
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.put("messages", new JSONArray().put(new JSONObject()
+                .put("role", "user")
+                .put("content", prompt)));
+        requestBody.put("max_tokens", 250);
+        requestBody.put("temperature", 0.5);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody.toString(), headers);
+
+        try {
+            System.out.println("Sending request to OpenAI API...");
+            ResponseEntity<String> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
+
+            System.out.println("Response Status Code: " + responseEntity.getStatusCode());
+            System.out.println("Response Body: " + responseEntity.getBody());
+
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                JSONObject responseJson = new JSONObject(responseEntity.getBody());
+                String gptResponse = responseJson.getJSONArray("choices").getJSONObject(0)
+                        .getJSONObject("message").getString("content");
+
+                System.out.println("GPT Response Content: " + gptResponse);
+                return parseGPTResponse(gptResponse);
+
+            } else {
+                System.err.println("Failed to get response from OpenAI API. Status Code: " + responseEntity.getStatusCode());
+                throw new RuntimeException("Failed to get response from OpenAI API. Status Code: " + responseEntity.getStatusCode());
+            }
+        } catch (Exception e) {
+            System.err.println("Exception occurred during GPT request: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error during GPT request", e);
+        }
+    }
+
+    private Map<String, Object> parseGPTResponse(String gptResponse) {
+        Map<String, Object> result = new HashMap<>();
+        System.out.println("Parsing GPT Response...");
+
+        try {
+            JSONObject jsonResponse = new JSONObject(gptResponse);
+
+            String recommendationType = jsonResponse.getString("추천 유형");
+            result.put("recommendationType", recommendationType);
+            System.out.println("Recommendation Type: " + recommendationType);
+
+            if (recommendationType.equals("키워드 추천") && jsonResponse.has("키워드")) {
+                JSONObject keywords = jsonResponse.getJSONObject("키워드");
+                Map<String, Integer> keywordScores = new HashMap<>();
+                for (String key : keywords.keySet()) {
+                    keywordScores.put(key, keywords.getInt(key));
+                }
+                result.put("keywords", keywordScores);
+                System.out.println("Extracted Keywords and Scores: " + keywordScores);
+
+            } else if (recommendationType.equals("유사 추천") && jsonResponse.has("제품명")) {
+                result.put("productName", jsonResponse.getString("제품명"));
+                System.out.println("Extracted Product Name: " + jsonResponse.getString("제품명"));
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error parsing GPT response: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to parse GPT response", e);
+        }
+
+        return result;
+    }
+
 }
