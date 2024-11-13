@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,8 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
+    //테스트용 코드
+    @Setter
     private Key secretKey;
 
     @Value("${jwt.secret}")
@@ -31,11 +34,6 @@ public class JwtUtil {
             // secret이 설정된 경우 해당 값을 사용하여 키를 생성 (길이가 충분한 경우에만)
             this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         }
-    }
-
-    //테스트용 코드
-    public void setSecretKey(Key secretKey) {
-        this.secretKey = secretKey;
     }
 
 
