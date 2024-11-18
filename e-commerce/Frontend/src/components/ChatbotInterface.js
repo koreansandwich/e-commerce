@@ -1,57 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./ChatbotInterface.css";
 
 const ChatbotInterface = () => {
-    const [chatHistory, setChatHistory] = useState([]);
+    const [chatHistory, setChatHistory] = useState([]); // 채팅 기록 상태
     const [message, setMessage] = useState("");
 
-    // 채팅 기록 불러오기
-    const handleViewHistory = () => {
+    // 히스토리 로드
+    useEffect(() => {
         const token = localStorage.getItem("token");
         axios
-            .get("http://localhost:8080/api/chat/history?days=7", {
-                headers: {Authorization: `Bearer ${token}`} // 템플릿 리터럴 수정`
+            .get("http://localhost:8080/api/chat/history", {
+                headers: { Authorization: `Bearer ${token}` },
             })
             .then((response) => {
-                setChatHistory(response.data); // 서버에서 받은 대화 기록을 설정
+                // 히스토리를 상태에 저장
+                setChatHistory(response.data);
             })
             .catch((error) => {
-                console.error("Failed to get chat history:", error);
+                console.error("Failed to load chat history:", error);
             });
-    };
+    }, []); // 빈 배열: 초기 렌더링 시 한 번 실행
 
     // 메시지 전송
     const handleSendMessage = () => {
         const token = localStorage.getItem("token");
         const newMessage = { text: message, sender: "user" };
 
-        // 빈 메시지를 전송하지 않도록 방지
         if (!message.trim()) {
             console.error("Cannot send an empty message");
             return;
         }
 
-        setChatHistory([...chatHistory, newMessage]); // 새로운 메시지를 대화 기록에 추가
+        // 화면에 사용자 메시지 추가
+        setChatHistory([...chatHistory, newMessage]);
 
         axios
             .post("http://localhost:8080/api/chat/send", newMessage, {
-                headers: { Authorization: `Bearer ${token}` }, // 템플릿 리터럴 수정
+                headers: { Authorization: `Bearer ${token}` },
             })
-            .then((response) => {
-                console.log("response.data:" + response.data);
-                console.log("User message sent. Now Requesting bot response...");
-
+            .then(() => {
+                // 봇 응답 요청
                 return axios.post("http://localhost:8080/api/chat/bot-response", newMessage, {
-                    headers: {Authorization: `Bearer ${token}`},
+                    headers: { Authorization: `Bearer ${token}` },
                 });
             })
             .then((response) => {
-                console.log("Bot Response: ", response.data.message);
-
+                // 화면에 봇 응답 추가
                 setChatHistory((prevHistory) => [
                     ...prevHistory,
-                    { text: response.data.message, sender: "bot" }, // 봇의 응답을 대화 기록에 추가
+                    { text: response.data.message, sender: "bot" },
                 ]);
             })
             .catch((error) => {
@@ -61,22 +59,19 @@ const ChatbotInterface = () => {
     };
 
     return (
-        <div className="chatbot-interface">
-            <header className="chatbot-header">
-                <h1>Design Thinking</h1>
-            </header>
+        <div className="chatbot-container">
             <div className="chat-area">
                 {chatHistory.length > 0 ? (
                     chatHistory.map((message, index) => (
                         <div
                             key={index}
-                            className={`chat-message ${message.sender}`} // 템플릿 리터럴 수정
+                            className={`chat-message ${message.sender}`}
                         >
                             <p>{message.text}</p>
                         </div>
                     ))
                 ) : (
-                    <p>Your chat will appear here...</p>
+                    <p className="empty-chat">Your chat will appear here...</p>
                 )}
             </div>
             <div className="input-area">
@@ -84,19 +79,13 @@ const ChatbotInterface = () => {
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type message..."
+                    placeholder="Type a message..."
                     className="chat-input"
                 />
                 <button onClick={handleSendMessage} className="send-button">
                     Send
                 </button>
             </div>
-            <button
-                onClick={handleViewHistory}
-                className="view-history-button"
-            >
-                View Chat History (Last 7 Days)
-            </button>
         </div>
     );
 };

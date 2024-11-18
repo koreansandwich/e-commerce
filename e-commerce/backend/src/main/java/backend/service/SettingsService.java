@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +24,11 @@ public class SettingsService {
     private final ChatMessageRepository chatMessageRepository;
     private final PasswordEncoder passwordEncoder;
 
+    public User getUserAccountByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+
     @Autowired
     public SettingsService(UserRepository userRepository, ChatMessageRepository chatMessageRepository) {
         this.userRepository = userRepository;
@@ -30,9 +36,34 @@ public class SettingsService {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public void updateUserAccount(Long userId, String newName, String newBirthDate, String newGender) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (newName != null && !newName.isEmpty()) {
+            user.setName(newName);
+        }
+
+        if (newBirthDate != null && !newBirthDate.isEmpty()) {
+            LocalDate birthDate = LocalDate.parse(newBirthDate);
+            user.setBirthDate(birthDate);
+        }
+
+        if (newGender != null && !newGender.isEmpty()) {
+            user.setGender(newGender);
+        }
+
+        userRepository.save(user);
+    }
+
     // 사용자 챗봇 대화 내역 불러오기
     public List<ChatMessage> getUserChatHistory(Long userId) {
-        return chatMessageRepository.findByUserIdOrderByTimestampDesc(userId);
+        return chatMessageRepository.findByUserIdOrderByTimestampAsc(userId);
     }
 
     // 사용자 챗봇 대화 내역 삭제
@@ -41,39 +72,4 @@ public class SettingsService {
         chatMessageRepository.deleteAll(chatMessages);
     }
 
-    // 사용자 계정 정보 업데이트
-    public void updateUserAccount(Long userId, String newName, String newPassword, String confirmPassword, Integer newAge, String newGender) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isPresent()) {
-            User existingUser = user.get();
-
-            // 이름 업데이트
-            if (newName != null && !newName.isEmpty()) {
-                existingUser.setName(newName);
-            }
-
-            // 비밀번호 업데이트 (비밀번호 확인 일치 여부 확인 및 암호화)
-            if (newPassword != null && !newPassword.isEmpty()) {
-                if (newPassword.equals(confirmPassword)) {
-                    existingUser.setPassword(passwordEncoder.encode(newPassword));
-                } else {
-                    throw new IllegalArgumentException("Passwords do not match");
-                }
-            }
-
-            // 나이 업데이트
-            if (newAge != null) {
-                existingUser.setAge(newAge);
-            }
-
-            // 성별 업데이트
-            if (newGender != null && !newGender.isEmpty()) {
-                existingUser.setGender(newGender);
-            }
-
-            userRepository.save(existingUser);
-        } else {
-            throw new RuntimeException("User not found");
-        }
-    }
 }

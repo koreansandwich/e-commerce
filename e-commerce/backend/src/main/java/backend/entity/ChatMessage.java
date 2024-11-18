@@ -81,4 +81,16 @@ public class ChatMessage {
     public void setUser(User user) {
         this.user = user;
     }
+
+    @Override
+    public String toString() {
+        return "ChatMessage{" +
+                "id=" + id +
+                ", user=" + (user != null ? user.getId() : "null") +
+                ", message='" + message + '\'' +
+                ", sender='" + sender + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+
 }

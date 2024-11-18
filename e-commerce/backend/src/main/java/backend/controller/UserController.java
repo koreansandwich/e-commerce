@@ -6,7 +6,10 @@ import backend.security.JwtUtil;
 import backend.service.CustomUserDetailService;
 import backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -47,19 +50,30 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String loginUser(@RequestBody User user) {
+    public ResponseEntity<?> loginUser(@RequestBody User user) {
         try {
+            // 사용자 인증 시도
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())
+            );
 
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
-
+            // 인증 성공 후 JWT 생성
             final UserDetails userDetails = customUserDetailService.loadUserByUsername(user.getEmail());
-
             final String jwt = jwtTUtil.generateToken(userDetails.getUsername());
 
-            return jwt;
+            // 성공적으로 로그인한 경우 JWT 반환
+            return ResponseEntity.ok(jwt);
+        } catch (BadCredentialsException e) {
+            // 잘못된 자격 증명 (이메일 또는 비밀번호가 틀림)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+        } catch (UsernameNotFoundException e) {
+            // 사용자 이메일이 데이터베이스에 없음
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
         } catch (Exception e) {
-            e.printStackTrace();  // 콘솔에 전체 스택 트레이스를 출력
-            return "An unexpected error occurred: " + e.getMessage();  // 예외 메시지를
+            // 기타 예외 처리
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
+
 }

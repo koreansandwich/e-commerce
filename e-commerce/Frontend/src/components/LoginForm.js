@@ -1,5 +1,5 @@
 import React from "react";
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import './LoginForm.css';
@@ -16,25 +16,25 @@ const LoginForm = () => (
             initialValues={{ email: '', password: '' }}
             validationSchema={LoginSchema}
             onSubmit={(values, { setSubmitting }) => {
-                axios.post('http://localhost:8080/api/auth/login', values)
+                axios.post("http://localhost:8080/api/auth/login", values)
                     .then((response) => {
-                        console.log(response.data);
-                        setSubmitting(false);
-
-                        if (response.status === 200) {
+                        if (response.status === 200) { // 성공적인 로그인 응답 처리
                             const token = response.data;
-                            localStorage.setItem('token', token);// 응답 상태 코드와 데이터 확인
+                            localStorage.setItem("token", token);
                             console.log("Login successful, token stored:", token);
-                            window.location.href = '/dashboard';
-                        } else {
-                            console.error("Login failed");
-                            window.location.href = '/register';
+                            window.location.href = "/dashboard"; // 대시보드로 이동
                         }
-
                     })
                     .catch((error) => {
-                        console.log(error);
-                        setSubmitting(false);
+                        if (error.response && error.response.status === 401) {
+                            alert("로그인 실패: 이메일 또는 비밀번호가 잘못되었습니다.");
+                        } else {
+                            alert("로그인 실패: 이메일 또는 비밀번호가 잘못되었습니다.");
+                        }
+                        console.error("Login failed:", error);
+                    })
+                    .finally(() => {
+                        setSubmitting(false); // 로딩 상태 해제
                     });
             }}
         >

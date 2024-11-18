@@ -1,99 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './Settings.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./Settings.css";
 
 const Settings = () => {
-    const [userId] = useState(1); // 임시로 설정된 사용자 ID
-    const [chatHistory, setChatHistory] = useState([]);
-    const [newName, setNewName] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [newAge, setNewAge] = useState('');
-    const [newGender, setNewGender] = useState('');
+    const [userData, setUserData] = useState({ email: '', name: '', birthDate: '', gender: '' });
 
     useEffect(() => {
-
-        // 사용자 챗봇 대화 내역 가져오기
-        axios.get(`/api/settings/chat-history/${userId}`)
-            .then(response => {
-                setChatHistory(response.data);
-            })
-            .catch(error => console.error('Error fetching chat history:', error));
-    }, [userId]);
-
-    const handleDeleteChatHistory = () => {
-        axios.delete(`/api/settings/chat-history/${userId}`)
-            .then(() => {
-                alert('Chat history deleted successfully');
-                setChatHistory([]); // 대화 내역 비우기
-            })
-            .catch(error => console.error('Error deleting chat history:', error));
-    };
-
-    const handleUpdateAccount = () => {
-        if (newPassword !== confirmPassword) {
-            alert('Passwords do not match');
+        const token = localStorage.getItem("token"); // JWT 토큰 가져오기
+        if (!token) {
+            console.error("No token found. Please log in again.");
+            alert("로그인이 필요합니다. 다시 로그인해 주세요.");
+            window.location.href = "/login";
             return;
         }
 
-        axios.put(`/api/settings/account/${userId}`, null, {
-            params: {
-                newName,
-                newPassword,
-                confirmPassword,
-                newAge,
-                newGender
-            }
-        })
-            .then(() => alert('Account updated successfully'))
-            .catch(error => console.error('Error updating account:', error));
+        // 사용자 정보를 가져오는 API 호출
+        axios
+            .get("http://localhost:8080/api/settings/account", {
+                headers: { Authorization: `Bearer ${token}` }, // Authorization 헤더에 토큰 추가
+            })
+            .then((response) => {
+                setUserData(response.data);
+            })
+            .catch((error) => {
+                console.error("사용자 정보 가져오기 오류:", error);
+                alert("사용자 정보를 불러오지 못했습니다. 다시 시도해 주세요.");
+            });
+    }, []);
+
+    const handleDeleteChatHistory = () => {
+        const token = localStorage.getItem("token"); // JWT 토큰 가져오기
+        axios
+            .delete("http://localhost:8080/api/settings/chat-history", {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then(() => {
+                alert("채팅 기록이 성공적으로 삭제되었습니다.");
+            })
+            .catch((error) => {
+                console.error("채팅 기록 삭제 중 오류 발생:", error);
+                alert("채팅 기록 삭제에 실패했습니다.");
+            });
+    };
+
+    const handleEditAccount = () => {
+        window.location.href = "/edit-account"; // 사용자 정보 수정 페이지로 이동
+    };
+
+    const handleChangePassword = () => {
+        window.location.href = "/change-password"; // 비밀번호 변경 페이지로 이동
     };
 
     return (
         <div className="settings-container">
             <h2>Settings</h2>
-            <div className="section">
-                <h3>Chat History</h3>
-                <button onClick={handleDeleteChatHistory}>Delete Chat History</button>
-                <ul>
-                    {chatHistory.map((message, index) => (
-                        <li key={index}>{message.sender}: {message.message}</li>
-                    ))}
-                </ul>
+            <div className="account-info">
+                <h3>Account Information</h3>
+                <p><strong>Email:</strong> {userData.email}</p>
+                <p><strong>Name:</strong> {userData.name}</p>
+                <p><strong>Birth Date:</strong> {userData.birthDate}</p>
+                <p><strong>Gender:</strong> {userData.gender}</p>
             </div>
-            <div className="section">
-                <h3>Update Account</h3>
-                <input
-                    type="text"
-                    placeholder="New Name"
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                />
-                <input
-                    type="password"
-                    placeholder="New Password"
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                />
-                <input
-                    type="password"
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                />
-                <input
-                    type="number"
-                    placeholder="New Age"
-                    value={newAge}
-                    onChange={e => setNewAge(e.target.value)}
-                />
-                <input
-                    type="text"
-                    placeholder="New Gender"
-                    value={newGender}
-                    onChange={e => setNewGender(e.target.value)}
-                />
-                <button onClick={handleUpdateAccount}>Update Account</button>
+            <div className="buttons-section">
+                <button onClick={handleDeleteChatHistory}>Delete Chat History</button>
+                <button onClick={handleEditAccount}>Edit Account Info</button>
+                <button onClick={handleChangePassword}>Change Password</button>
             </div>
         </div>
     );

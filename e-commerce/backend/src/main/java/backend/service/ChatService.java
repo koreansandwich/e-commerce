@@ -4,6 +4,8 @@ import backend.entity.ChatMessage;
 import backend.entity.User;
 import backend.repository.ChatMessageRepository;
 import backend.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,7 @@ public class ChatService {
     private final KeywordExtractor keywordExtractor;
     private final RecommendationService recommendationService;
     private final FinalMessageService finalMessageService;
+    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
 
     public ChatService(ChatMessageRepository chatMessageRepository, UserRepository userRepository,
                        KeywordExtractor keywordExtractor, RecommendationService recommendationService,
@@ -70,6 +73,15 @@ public class ChatService {
     }
 
     public List<ChatMessage> getChatHistory(Long userId) {
-        return chatMessageRepository.findByUserIdOrderByTimestampDesc(userId);
+        List<ChatMessage> chatHistory = chatMessageRepository.findByUserIdOrderByTimestampAsc(userId);
+
+        // 콘솔 출력
+        if (chatHistory.isEmpty()) {
+            logger.info("No chat history found for userId: {}", userId);
+        } else {
+            logger.info("Chat history for userId {}: {}", userId, chatHistory);
+        }
+
+        return chatHistory;
     }
 }

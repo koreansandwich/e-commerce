@@ -2,11 +2,14 @@ package backend.controller;
 
 import backend.DTO.MessageDTO;
 import backend.entity.ChatMessage;
+import backend.entity.User;
+import backend.security.JwtUtil;
 import backend.service.SettingsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +19,7 @@ public class SettingsController {
 
     @Autowired
     private SettingsService settingsService;
+    private JwtUtil jwtUtil;
 
 
     // 사용자 챗봇 대화 내역 가져오기
@@ -31,15 +35,30 @@ public class SettingsController {
         return "User chat history deleted successfully";
     }
 
-    // 사용자 계정 정보 업데이트
+    @GetMapping("/account")
+    public User getAccountInformation(@RequestHeader("Authorization") String token) {
+        String jwt = token.substring(7); // "Bearer " 제거
+        String email = jwtUtil.extractUsername(jwt); // JWT에서 이메일 추출
+        return settingsService.getUserAccountByEmail(email); // 이메일로 사용자 정보 반환
+    }
+
+
+    @GetMapping("/account/{userId}")
+    public User getUserAccount(@PathVariable Long userId) {
+        return settingsService.getUserById(userId);
+    }
+
     @PutMapping("/account/{userId}")
-    public String updateUserAccount(@PathVariable Long userId,
-                                    @RequestParam(required = false) String newName,
-                                    @RequestParam(required = false) String newPassword,
-                                    @RequestParam(required = false) String confirmPassword,
-                                    @RequestParam(required = false) Integer newAge,
-                                    @RequestParam(required = false) String newGender) {
-        settingsService.updateUserAccount(userId, newName, newPassword, confirmPassword, newAge, newGender);
+    public String updateUserAccount(
+            @PathVariable Long userId,
+            @RequestBody Map<String, String> updateData) {
+        String newName = updateData.get("name");
+        String newBirthDate = updateData.get("birthDate");
+        String newGender = updateData.get("gender");
+
+        settingsService.updateUserAccount(userId, newName, newBirthDate, newGender);
         return "User account updated successfully";
     }
+
+
 }

@@ -50,11 +50,11 @@ class ChatServiceTest {
         ChatMessage message2 = new ChatMessage(mockUser, "Hi There!", "bot", null);
         List<ChatMessage> chatMessages = Arrays.asList(message1, message2);
 
-        when(chatMessageRepository.findByUserIdOrderByTimestampDesc(anyLong())).thenReturn(chatMessages);
+        when(chatMessageRepository.findByUserIdOrderByTimestampAsc(anyLong())).thenReturn(chatMessages);
         List<ChatMessage> result = chatService.getChatHistory(1L);
 
         assertEquals(2, result.size());
-        verify(chatMessageRepository, times(1)).findByUserIdOrderByTimestampDesc(1L);
+        verify(chatMessageRepository, times(1)).findByUserIdOrderByTimestampAsc(1L);
 
     }
 
