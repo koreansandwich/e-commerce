@@ -28,7 +28,7 @@ public class KeywordExtractor {
     );
 
     private static final List<String> categoryList = Arrays.asList(
-            "스킨", "로션", "에센스", "세럼/앰플/미스트", "오일", "크림/올인원", "마스크/팩", "선케어/태닝"
+            "스킨", "로션", "에센스", "세럼/앰플/미스트", "오일", "크림/올인원", "마스크팩", "선케어"
     );
 
     public KeywordExtractor() {
@@ -56,6 +56,7 @@ public class KeywordExtractor {
 
         keywordPrompt.append("4. 추천 유형이 '유사한 제품을 통한 제품 추천'일 경우:\n");
         keywordPrompt.append("   - 메시지에서 제품명을 추출하여 JSON 형식으로 {추천 유형: '유사 추천', 제품명: '추출된 제품명'} 형태로 반환하세요.\n");
+        keywordPrompt.append(" 부가적인 설명 없이 정확하게 JSON 형식만 반환하세요. 무조건 '{'로 시작하고, '}'로 끝나야 합니다.");
 
         String prompt = keywordPrompt.toString() + "\n사용자 메시지: \"" + userMessage + "\"\n" + "결과를 JSON 형식으로 반환합니다: 추천 유형과 관련 데이터.\n";
         System.out.println("Generated Prompt: " + prompt);
@@ -113,6 +114,25 @@ public class KeywordExtractor {
         Map<String, Object> result = new HashMap<>();
         System.out.println("Parsing GPT Response..." + gptResponse);
 
+        // Step 1: Remove Markdown formatting (e.g., ```json and ```)
+        if (gptResponse.startsWith("```json")) {
+            gptResponse = gptResponse.substring(7); // Remove "```json"
+        }
+        if (gptResponse.startsWith("```")) {
+            gptResponse = gptResponse.substring(3); // Remove "```"
+        }
+        if (gptResponse.endsWith("```")) {
+            gptResponse = gptResponse.substring(0, gptResponse.length() - 3); // Remove trailing "```"
+        }
+
+        // Step 2: Trim any extra spaces
+        gptResponse = gptResponse.trim();
+
+        // Step 3: Validate JSON format
+        if (!(gptResponse.startsWith("{") && gptResponse.endsWith("}"))) {
+            throw new JSONException("Invalid JSON format: Response does not start with '{' or end with '}'");
+        }
+
         try {
             // 정규식을 사용해 JSON 형식으로 시작하는 부분만 추출
             Pattern jsonPattern = Pattern.compile("\\{.*\\}", Pattern.DOTALL);
@@ -125,13 +145,14 @@ public class KeywordExtractor {
 
             JSONObject jsonResponse = new JSONObject(gptResponse);
 
-            JSONArray categories;
-            try {
-                categories = jsonResponse.getJSONArray("카테고리");
-            } catch (JSONException e) {
-                // 카테고리가 객체로 반환된 경우
-                categories = new JSONArray();
-                categories.put(jsonResponse.getString("카테고리"));
+            JSONArray categories = new JSONArray();
+            if (jsonResponse.has("카테고리")) {
+                Object categoryObject = jsonResponse.get("카테고리");
+                if (categoryObject instanceof JSONArray) {
+                    categories = (JSONArray) categoryObject;
+                } else if (categoryObject instanceof String) {
+                    categories.put(categoryObject);
+                }
             }
 
             String recommendationType = jsonResponse.getString("추천 유형");
