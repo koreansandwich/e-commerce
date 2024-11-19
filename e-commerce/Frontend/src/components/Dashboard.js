@@ -14,7 +14,7 @@ const Dashboard = () => (
             </div>
             <div className="card" onClick={() => window.location.href = '/ecommerce'}>
                 <img src={ecommerceIcon} alt="E-Commerce" className="card-icon" />
-                <h2>이커머스 사이트</h2>
+                <h2>구매 제품 리뷰</h2>
             </div>
             <div className="card" onClick={() => window.location.href = '/analytics'}>
                 <img src={analysisIcon} alt="Analysis" className="card-icon" />
