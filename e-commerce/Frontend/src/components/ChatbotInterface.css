@@ -51,7 +51,9 @@ body {
     align-self: flex-start;
     background-color: #e2e2e2;
     color: #333;
+    text-align: left; /* 좌측 정렬 추가 */
 }
+
 
 .input-area {
     display: flex;
@@ -83,3 +85,14 @@ body {
 .send-button:hover {
     background-color: #0056b3;
 }
+
+.link {
+    color: #007bff; /* 파란색 */
+    text-decoration: none; /* 밑줄 제거 */
+    font-weight: bold;
+}
+
+.link:hover {
+    text-decoration: underline; /* 마우스 올릴 때 밑줄 표시 */
+}
+

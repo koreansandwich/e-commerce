@@ -4,6 +4,8 @@ import backend.entity.ChatMessage;
 import backend.entity.User;
 import backend.repository.ChatMessageRepository;
 import backend.repository.UserRepository;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,7 +20,6 @@ public class ChatService {
     private final UserRepository userRepository;
     private final KeywordExtractor keywordExtractor;
     private final RecommendationService recommendationService;
-    private final FinalMessageService finalMessageService;
     private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
 
     public ChatService(ChatMessageRepository chatMessageRepository, UserRepository userRepository,
@@ -28,7 +29,6 @@ public class ChatService {
         this.userRepository = userRepository;
         this.keywordExtractor = keywordExtractor;
         this.recommendationService = recommendationService;
-        this.finalMessageService = finalMessageService;
     }
 
     /**
@@ -60,7 +60,7 @@ public class ChatService {
         String recommendationsJson = recommendationService.getRecommendations(recommendationType, analysisResult);
 
         // 3. 추천 데이터를 기반으로 자연스러운 메시지 생성
-        String botResponse = finalMessageService.generateMessageFromRecommendations(recommendationsJson);
+        String botResponse = generateStructuredResponse(recommendationsJson);
 
         // 4. 생성된 응답 메시지를 저장
         ChatMessage chatMessage = new ChatMessage();
@@ -70,6 +70,29 @@ public class ChatService {
         chatMessage.setTimestamp(LocalDateTime.now());
 
         return chatMessageRepository.save(chatMessage);
+    }
+
+    private String generateStructuredResponse(String recommendationsJson) {
+        try {
+            // JSON 데이터를 파싱
+            JSONArray recommendations = new JSONArray(recommendationsJson);
+            StringBuilder responseBuilder = new StringBuilder();
+
+            // 추천된 제품 정보 구성
+            responseBuilder.append("안녕하세요! 다음은 추천된 제품입니다:\n\n");
+            for (int i = 0; i < Math.min(1, recommendations.length()); i++) { // 최대 1개 제품만 표시
+                JSONObject product = recommendations.getJSONObject(i);
+                responseBuilder.append("제품명: ").append(product.optString("item_name", "제품명 없음")).append("\n")
+                        .append("가격: ").append(product.optString("item_final_price", "가격 정보 없음")).append("원\n")
+                        .append("브랜드: ").append(product.optString("brand", "브랜드 정보 없음")).append("\n")
+                        .append("링크: ").append(product.optString("item_link", "링크 없음")).append("\n\n"); // 링크 추가
+            }
+
+            return responseBuilder.toString(); // 최종 메시지 반환
+        } catch (Exception e) {
+            logger.error("Failed to generate structured response", e);
+            return "추천 결과를 생성하는 중 오류가 발생했습니다.";
+        }
     }
 
     public List<ChatMessage> getChatHistory(Long userId) {

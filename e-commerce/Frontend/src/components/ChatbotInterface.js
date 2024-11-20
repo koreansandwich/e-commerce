@@ -1,26 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./ChatbotInterface.css";
 
 const ChatbotInterface = () => {
     const [chatHistory, setChatHistory] = useState([]); // 채팅 기록 상태
     const [message, setMessage] = useState("");
+    const chatAreaRef = useRef(null); // 스크롤 제어를 위한 Ref
 
     // 히스토리 로드
     useEffect(() => {
         const token = localStorage.getItem("token");
         axios
             .get("http://localhost:8080/api/chat/history", {
-                headers: { Authorization: `Bearer ${token}` }, // 백틱 사용
+                headers: { Authorization: `Bearer ${token}` },
             })
             .then((response) => {
-                // 히스토리를 상태에 저장
                 setChatHistory(response.data);
             })
             .catch((error) => {
                 console.error("Failed to load chat history:", error);
             });
-    }, []); // 빈 배열: 초기 렌더링 시 한 번 실행
+    }, []);
+
+    // 새로운 메시지가 추가될 때 자동 스크롤
+    useEffect(() => {
+        if (chatAreaRef.current) {
+            chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+        }
+    }, [chatHistory]);
 
     // 메시지 전송
     const handleSendMessage = () => {
@@ -32,21 +39,19 @@ const ChatbotInterface = () => {
             return;
         }
 
-        // 화면에 사용자 메시지 추가
-        setChatHistory([...chatHistory, newMessage]);
+        setChatHistory([...chatHistory, newMessage]); // 사용자 메시지 추가
 
         axios
             .post("http://localhost:8080/api/chat/send", newMessage, {
-                headers: { Authorization: `Bearer ${token}` }, // 백틱 사용
+                headers: { Authorization: `Bearer ${token}` },
             })
             .then(() => {
-                // 봇 응답 요청
                 return axios.post("http://localhost:8080/api/chat/bot-response", newMessage, {
-                    headers: { Authorization: `Bearer ${token}` }, // 백틱 사용
+                    headers: { Authorization: `Bearer ${token}` },
                 });
             })
             .then((response) => {
-                // 화면에 봇 응답 추가
+                // 봇 응답 추가
                 setChatHistory((prevHistory) => [
                     ...prevHistory,
                     { text: response.data.message, sender: "bot" },
@@ -55,19 +60,50 @@ const ChatbotInterface = () => {
             .catch((error) => {
                 console.error("Failed to send message:", error);
             });
-        setMessage(""); // 입력 필드 초기화
+
+        setMessage(""); // 입력 초기화
+    };
+
+    // 봇 메시지 포맷팅
+    const renderBotMessage = (message) => {
+        try {
+            // 메시지가 JSON 포맷일 경우 파싱
+            const data = JSON.parse(message.text);
+
+            return (
+                <div className="bot-message-card">
+                    <h3>{data.productName}</h3>
+                    <p><strong>가격:</strong> {data.price}</p>
+                    <p><strong>브랜드:</strong> {data.brand}</p>
+                    <a href={data.link} target="_blank" rel="noopener noreferrer" className="link">
+                        [클릭하세요]
+                    </a> {/* 하이퍼링크 추가 */}
+                </div>
+            );
+        } catch (e) {
+            // 텍스트 메시지일 경우 줄바꿈 처리 추가
+            return (
+                <div>
+                    {message.text.split("\n").map((line, index) => (
+                        <p key={index}>{line}</p> // 줄바꿈 처리
+                    ))}
+                </div>
+            );
+        }
     };
 
     return (
         <div className="chatbot-container">
-            <div className="chat-area">
+            <div className="chat-area" ref={chatAreaRef}>
                 {chatHistory.length > 0 ? (
                     chatHistory.map((message, index) => (
                         <div
                             key={index}
-                            className={`chat-message ${message.sender}`} // 백틱 사용
+                            className={`chat-message ${message.sender}`}
                         >
-                            <p>{message.text}</p>
+                            {message.sender === "bot"
+                                ? renderBotMessage(message)
+                                : <p>{message.text}</p>}
                         </div>
                     ))
                 ) : (
