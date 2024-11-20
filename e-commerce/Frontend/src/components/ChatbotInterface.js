@@ -72,12 +72,21 @@ const ChatbotInterface = () => {
 
             return (
                 <div className="bot-message-card">
-                    <h3>{data.productName}</h3>
-                    <p><strong>가격:</strong> {data.price}</p>
-                    <p><strong>브랜드:</strong> {data.brand}</p>
-                    <a href={data.link} target="_blank" rel="noopener noreferrer" className="link">
-                        [클릭하세요]
-                    </a> {/* 하이퍼링크 추가 */}
+                    {data.map((item, index) => (
+                        <div key={index}>
+                            <p>안녕하세요! 적절한 제품을 추천해드릴게요 :)</p>
+                            <img src={item.item_image_url} alt={item.item_name} className="product-image"/>
+                            <h3>{item.item_name}</h3>
+                            <p><strong>가격:</strong> {item.item_final_price}원</p>
+                            <p><strong>브랜드:</strong> {item.brand}</p>
+                            <p>
+                                <strong>링크:{" "}</strong>
+                                <a href={data.item_link} target="_blank" rel="noopener noreferrer" className="link">
+                                    [클릭하세요]
+                                </a>
+                            </p>
+                        </div>
+                    ))}
                 </div>
             );
         } catch (e) {

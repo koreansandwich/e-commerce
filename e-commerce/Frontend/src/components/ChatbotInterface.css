@@ -96,3 +96,10 @@ body {
     text-decoration: underline; /* 마우스 올릴 때 밑줄 표시 */
 }
 
+.product-image {
+    width: 180px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
