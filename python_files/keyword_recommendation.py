@@ -1,58 +1,91 @@
 from flask import Flask, request, jsonify
+from sqlalchemy import create_engine, text
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-import numpy as np
 
 app = Flask(__name__)
 
-# 카테고리별 파일 경로를 매핑한 딕셔너리
-CATEGORY_FILE_PATHS = {
-    "스킨": "skin_data.csv",
-    "로션": "lotion_data.csv",
-    "에센스": "essence_data.csv",
-    "세럼/앰플/미스트": "serum_ampoule_mist_data.csv",
-    "오일": "oil_data.csv",
-    "크림/올인원": "cream_all_in_one_data.csv",
-    "마스크팩": "mask_pack_data.csv",
-    "선케어": "suncare_keyword_score.csv"
-}
+# MySQL RDS 연결 설정
+DATABASE_URI = "mysql+pymysql://koreansandwich:jeon3750@ecommerce-db.cziiceyekxzs.ap-southeast-2.rds.amazonaws.com:3306/ecommerce"
+engine = create_engine(DATABASE_URI)
 
-def load_data(category):
-    # 카테고리 값에 따라 해당 파일 경로에서 데이터 로드
-    file_path = CATEGORY_FILE_PATHS.get(category, CATEGORY_FILE_PATHS["선케어"])  # 카테고리가 없으면 "선케어" 파일 로드
+def load_data_from_rds(category):
     try:
-        df = pd.read_csv(file_path)
+        # SQL 쿼리 디버깅
+        print(f"Fetching items for category: {category}")
+        query = text("""
+            SELECT item_id, item_type
+            FROM items
+            WHERE item_type = :category
+        """)
+        items_df = pd.read_sql(query, engine, params={"category": category})
+        print(f"Items fetched: {items_df}")
+
+        if items_df.empty:
+            return None, "No items found for the given category."
+
+        # item_score 데이터 쿼리
+        query_scores = text("""
+            SELECT *
+            FROM item_score
+            WHERE item_id IN :item_ids
+        """)
+        print(f"Fetching scores for item_ids: {tuple(items_df['item_id'])}")
+        scores_df = pd.read_sql(query_scores, engine, params={"item_ids": tuple(items_df["item_id"])})
+        print(f"Scores fetched: {scores_df}")
+
+        if scores_df.empty:
+            return None, "No scores found for the given items."
+
+        # 데이터 병합
+        merged_df = pd.merge(items_df, scores_df, on="item_id")
+        print(f"Merged data: {merged_df}")
+
         # 데이터 정규화
         scaler = StandardScaler()
-        scaled_values = scaler.fit_transform(df.drop(columns=['Unnamed: 0', 'link', 'name']))
-        normalized_df = pd.DataFrame(scaled_values, columns=df.columns[3:28])
-        normalized_df['name'] = df['name']
-        normalized_df['link'] = df['link']
-        return normalized_df
-    except FileNotFoundError:
-        print(f"Error: File for category '{category}' not found.")
-        return None
+        feature_columns = scores_df.columns.difference(["item_id"])
+        scaled_values = scaler.fit_transform(merged_df[feature_columns])
+        normalized_df = pd.DataFrame(scaled_values, columns=feature_columns)
+        normalized_df["item_id"] = merged_df["item_id"]
+        normalized_df["item_type"] = merged_df["item_type"]
 
-# 1. 요청에 맞는 아이템 상위 n%의 df를 리턴하는 함수
+        return normalized_df, None
+
+    except Exception as e:
+        print(f"Error loading data from RDS: {e}")
+        return None, str(e)
+
+
+    except Exception as e:
+        print(f"Error loading data from RDS: {e}")
+        return None, str(e)
+
 def items_for_request(sample_request, df):
+    """
+    사용자 요청을 기반으로 상위 n%의 아이템을 필터링.
+    """
     request_features = {key: value for key, value in sample_request.items() if value != 0}
     percentage = 0.2
     num_of_percentage = round(len(df) * percentage)
+
     request_columns = list(request_features.keys())
     for key, value in request_features.items():
         df[key] *= value
+
     temp = df[(df[request_columns] > 0).all(axis=1)]
-    temp['request_score'] = temp[request_columns].prod(axis=1)
-    requested_df = temp.nlargest(num_of_percentage, 'request_score')
+    temp["request_score"] = temp[request_columns].prod(axis=1)
+    requested_df = temp.nlargest(num_of_percentage, "request_score")
     return requested_df
 
-# 2. 나머지 특성을 이용해 클러스터링
 def clustering(sample_request, requested_df):
+    """
+    필터링된 데이터를 클러스터링하여 추천.
+    """
     request_features = {key: value for key, value in sample_request.items() if value != 0}
     request_columns = list(request_features.keys())
     temp_without_request = requested_df.drop(columns=request_columns)
-    temp = temp_without_request.select_dtypes(exclude=['object'])
+    temp = temp_without_request.select_dtypes(exclude=["object"])
 
     wcss = []
     max_k = int(len(requested_df) / 1.5)
@@ -71,45 +104,44 @@ def clustering(sample_request, requested_df):
             break
 
     kmeans = KMeans(n_clusters=optimal_k, random_state=42)
-    temp['group'] = kmeans.fit_predict(temp)
-    temp['name'] = requested_df['name']
-    temp['link'] = requested_df['link']
+    temp["group"] = kmeans.fit_predict(temp)
+    temp["item_id"] = requested_df["item_id"]
+    temp["item_type"] = requested_df["item_type"]
 
     return temp
 
-# API 엔드포인트
-@app.route('/recommend', methods=['POST'])
+@app.route("/recommend", methods=["POST"])
 def recommend():
-    # Java에서 보낸 JSON 데이터를 받아서 sample_request 변수에 저장
     sample_request = request.json
-    # 카테고리를 확인하고 데이터를 로드
-    categories = sample_request.get("카테고리", ["선케어"])  # 카테고리가 없을 때는 기본값으로 "선케어"
-    category = categories[0]  # 첫 번째 카테고리 선택 (다중 카테고리는 우선 하나로 처리)
-    df = load_data(category)
+    categories = sample_request.get("카테고리", ["기본카테고리"])
+    category = categories[0]
 
+    # RDS에서 데이터 로드
+    df, error = load_data_from_rds(category)
     if df is None:
-        return jsonify({"error": f"Data for category '{category}' not found"}), 404
+        return jsonify({"error": error}), 404
 
     # 요청된 키워드로 필터링하고 클러스터링
     keywords = sample_request.get("키워드", {})
     rdf = items_for_request(keywords, df)
     cluster_df = clustering(keywords, rdf)
 
-    max_request_scores = cluster_df.loc[cluster_df.groupby('group')['request_score'].idxmax()]
-    max_request_scores.drop(columns=['request_score', 'group'], inplace=True)
+    max_request_scores = cluster_df.loc[cluster_df.groupby("group")["request_score"].idxmax()]
 
-    # JSON 응답 데이터 생성
-    recommendations = []
-    for _, row in max_request_scores.iterrows():
-        product = {
-            "name": row['name'],
-            "link": row['link'],
-            "features": {column: ("↑" if row[column] > 0 else "↓" if row[column] < 0 else "-")
-                         for column in max_request_scores.select_dtypes(exclude=['object']).columns}
-        }
-        recommendations.append(product)
+    # 추천된 item_id로 전체 정보 가져오기
+    recommended_ids = max_request_scores["item_id"].tolist()
 
+    query_details = text("""
+        SELECT * 
+        FROM items
+        WHERE item_id IN :item_ids
+    """)
+    detailed_items = pd.read_sql(query_details, engine, params={"item_ids": tuple(recommended_ids)})
+
+    # JSON 응답 생성
+    recommendations = detailed_items.to_dict(orient="records")
     return jsonify(recommendations)
 
-if __name__ == '__main__':
-    app.run(port=5000)
+
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)

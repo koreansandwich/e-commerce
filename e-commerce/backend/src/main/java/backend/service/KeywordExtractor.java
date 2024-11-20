@@ -28,7 +28,7 @@ public class KeywordExtractor {
     );
 
     private static final List<String> categoryList = Arrays.asList(
-            "스킨", "로션", "에센스", "세럼/앰플/미스트", "오일", "크림/올인원", "마스크팩", "선케어"
+            "cream", "lotion", "oil", "maskpack", "skin", "suncare", "essence", "mist"
     );
 
     public KeywordExtractor() {

@@ -11,7 +11,7 @@ const ChatbotInterface = () => {
         const token = localStorage.getItem("token");
         axios
             .get("http://localhost:8080/api/chat/history", {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { Authorization: `Bearer ${token}` }, // 백틱 사용
             })
             .then((response) => {
                 // 히스토리를 상태에 저장
@@ -37,12 +37,12 @@ const ChatbotInterface = () => {
 
         axios
             .post("http://localhost:8080/api/chat/send", newMessage, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { Authorization: `Bearer ${token}` }, // 백틱 사용
             })
             .then(() => {
                 // 봇 응답 요청
                 return axios.post("http://localhost:8080/api/chat/bot-response", newMessage, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: { Authorization: `Bearer ${token}` }, // 백틱 사용
                 });
             })
             .then((response) => {
@@ -65,7 +65,7 @@ const ChatbotInterface = () => {
                     chatHistory.map((message, index) => (
                         <div
                             key={index}
-                            className={`chat-message ${message.sender}`}
+                            className={`chat-message ${message.sender}`} // 백틱 사용
                         >
                             <p>{message.text}</p>
                         </div>

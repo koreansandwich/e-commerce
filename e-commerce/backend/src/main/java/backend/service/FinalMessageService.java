@@ -54,7 +54,7 @@ public class FinalMessageService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(OPENAI_API_KEY);
 
-            // GPT 요청 본문 생성
+            // GPT 요청 데이터 생성
             JSONObject requestBody = new JSONObject();
             requestBody.put("model", "gpt-4-turbo");
             requestBody.put("messages", new JSONArray().put(new JSONObject()
@@ -70,8 +70,19 @@ public class FinalMessageService {
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 JSONObject responseBody = new JSONObject(response.getBody());
-                return responseBody.getJSONArray("choices").getJSONObject(0)
-                        .getJSONObject("message").getString("content").trim();
+                String gptResponse = responseBody.getJSONArray("choices")
+                        .getJSONObject(0)
+                        .getJSONObject("message")
+                        .getString("content")
+                        .trim();
+
+                // 디버깅: 응답에 줄바꿈 확인
+                System.out.println("GPT Response: " + gptResponse);
+
+                // 줄바꿈 추가 (필요 시)
+                gptResponse = gptResponse.replace("\\n", "\n");
+
+                return gptResponse;
             } else {
                 throw new RuntimeException("Failed to call GPT API: " + response.getStatusCode());
             }
@@ -80,7 +91,6 @@ public class FinalMessageService {
             e.printStackTrace();
             return "추천 결과를 표시하는 중 오류가 발생했습니다.";
         }
-
     }
 
     /**
@@ -91,28 +101,35 @@ public class FinalMessageService {
      */
     private String createPromptFromRecommendations(JSONArray recommendationsArray) {
         try {
-            int maxProducts = Math.min(recommendationsArray.length(), 2); // 최대 2개 제품만 추천
+            int maxProducts = Math.min(recommendationsArray.length(), 1); // 최대 1개 제품만 추천
 
-            StringBuilder promptBuilder = new StringBuilder("다음 추천 제품 데이터를 기반으로 간결하고 친절한 메시지를 작성해주세요. 메시지는 사용자가 요청한 제품을 간단히 설명하고, 제품 2개만 포함해주세요:\n\n");
+            StringBuilder promptBuilder = new StringBuilder("다음 추천 제품 데이터를 기반으로 간결하고 친근한 메시지를 생성해주세요:\n\n");
             promptBuilder.append("[추천 제품 데이터 시작]\n");
 
             for (int i = 0; i < maxProducts; i++) {
                 JSONObject product = recommendationsArray.getJSONObject(i);
-                String name = product.getString("name");
-                String link = product.getString("link");
+                String name = product.optString("item_name", "제품명 없음");
+                String link = product.optString("item_link", "링크 없음");
+                String price = product.optString("item_final_price", "가격 정보 없음");
+                String brand = product.optString("brand", "브랜드 정보 없음");
 
                 promptBuilder.append("- 제품명: ").append(name).append("\n");
-                promptBuilder.append("  링크: ").append(link).append("\n");
+                promptBuilder.append("  브랜드: ").append(brand).append("\n");
+                promptBuilder.append("  가격: ").append(price).append("원\n");
+                promptBuilder.append("  링크: ").append(link).append("\n\n");
             }
 
             promptBuilder.append("[추천 제품 데이터 끝]\n\n");
-            promptBuilder.append("위 데이터를 바탕으로 메시지를 작성해주세요. 사용자가 쉽게 이해할 수 있도록 간단하게 작성하고, 추가적인 사족은 생략해주세요.");
-            promptBuilder.append("제품명, 링크, 간단한 설명만 첨부하고, 줄바꿈해서 사용자가 가독성 좋게 볼 수 있도록 해 주세요.");
-            promptBuilder.append("내용물에 대한 설명은 필요 없습니다. \n");
+            promptBuilder.append("위 데이터를 바탕으로 사용자에게 제공할 메시지를 생성해주세요. 메시지는 간단하고 친근하며, 가독성을 높이기 위해 줄바꿈을 사용하세요.");
+            promptBuilder.append("제품 이름, 브랜드, 가격, 링크를 강조해주세요. 제가 개발 중인 챗봇 시스템에는 '진하게'와 같은 서식이 적용 안 되므로, 서식 설정 없이 텍스트만으로 응답해주세요.");
+            promptBuilder.append("다음과 같은 형식으로 메시지를 작성해주세요. 각 정보는 줄바꿈 후에 표시됩니다:\n")
+                    .append("제품명: [제품명]\n")
+                    .append("가격: [가격]\n")
+                    .append("링크: [링크]\n")
+                    .append("기타 정보: [기타 정보]\n\n");
 
-            // 디버깅용: 프롬프트 출력
-            System.out.println("Generated Prompt for GPT: " + promptBuilder);
 
+            System.out.println("Generated GPT Prompt: " + promptBuilder.toString());
             return promptBuilder.toString();
         } catch (Exception e) {
             System.out.println("Error while creating prompt: " + e.getMessage());
@@ -120,6 +137,4 @@ public class FinalMessageService {
             return "추천 데이터를 표시하는 중 오류가 발생했습니다.";
         }
     }
-
 }
-
