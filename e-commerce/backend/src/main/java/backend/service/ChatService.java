@@ -23,8 +23,8 @@ public class ChatService {
     private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
 
     public ChatService(ChatMessageRepository chatMessageRepository, UserRepository userRepository,
-                       KeywordExtractor keywordExtractor, RecommendationService recommendationService,
-                       FinalMessageService finalMessageService) {
+                       KeywordExtractor keywordExtractor, RecommendationService recommendationService
+    ) {
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
         this.keywordExtractor = keywordExtractor;

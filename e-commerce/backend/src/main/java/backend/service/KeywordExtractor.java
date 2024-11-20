@@ -55,7 +55,9 @@ public class KeywordExtractor {
 
 
         keywordPrompt.append("4. 추천 유형이 '유사한 제품을 통한 제품 추천'일 경우:\n");
-        keywordPrompt.append("   - 메시지에서 제품명을 추출하여 JSON 형식으로 {추천 유형: '유사 추천', 제품명: '추출된 제품명'} 형태로 반환하세요.\n");
+        keywordPrompt.append("   - 메시지에서 제품명을 추출하여 JSON 형식으로 {추천 유형: '유사 추천', 제품명: '추출된 제품명', 카테고리: {카테고리1, 카테고리2, ...} } 형태로 반환하세요.\n");
+        keywordPrompt.append(" 유사 추천의 카테고리는 사용자가 입력한 제품의 카테고리가 아니라 추천할 제품의 카테고리입니다.");
+        keywordPrompt.append(" 제품명은 무조건 사용자가 입력한 대로 따옴표 안에 있는 내용을 정확히 반환하세요.");
         keywordPrompt.append(" 부가적인 설명 없이 정확하게 JSON 형식만 반환하세요. 무조건 '{'로 시작하고, '}'로 끝나야 합니다.");
 
         String prompt = keywordPrompt.toString() + "\n사용자 메시지: \"" + userMessage + "\"\n" + "결과를 JSON 형식으로 반환합니다: 추천 유형과 관련 데이터.\n";
