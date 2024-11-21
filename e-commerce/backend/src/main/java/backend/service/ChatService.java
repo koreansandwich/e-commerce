@@ -2,7 +2,9 @@ package backend.service;
 
 import backend.entity.ChatMessage;
 import backend.entity.User;
+import backend.entity.UserHistory;
 import backend.repository.ChatMessageRepository;
+import backend.repository.UserHistoryRepository;
 import backend.repository.UserRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,15 +22,18 @@ public class ChatService {
     private final UserRepository userRepository;
     private final KeywordExtractor keywordExtractor;
     private final RecommendationService recommendationService;
+    private final UserHistoryRepository userHistoryRepository;
     private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
 
     public ChatService(ChatMessageRepository chatMessageRepository, UserRepository userRepository,
-                       KeywordExtractor keywordExtractor, RecommendationService recommendationService
+                       KeywordExtractor keywordExtractor, RecommendationService recommendationService,
+                       UserHistoryRepository userHistoryRepository
     ) {
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
         this.keywordExtractor = keywordExtractor;
         this.recommendationService = recommendationService;
+        this.userHistoryRepository = userHistoryRepository;
     }
 
     /**
@@ -62,7 +67,29 @@ public class ChatService {
         // 3. 추천 데이터를 기반으로 자연스러운 메시지 생성
         String botResponse = generateStructuredResponse(recommendationsJson);
 
-        // 4. 생성된 응답 메시지를 저장
+        // 4. 추천받은 제품의 item_id 저장
+        try {
+            JSONArray recommendations = new JSONArray(recommendationsJson);
+            for (int i = 0; i < Math.min(1, recommendations.length()); i++) { // 최대 1개만 저장
+                JSONObject product = recommendations.getJSONObject(i);
+                Long itemId = product.optLong("item_id", -1);
+
+                if (itemId != -1) {
+                    // user_history 테이블에 저장
+                    UserHistory history = new UserHistory();
+                    history.setUserId(user.getId());
+                    history.setItemId(itemId);
+                    history.setRating(null); // 초기값 NULL
+                    history.setReview(null); // 초기값 NULL
+                    userHistoryRepository.save(history);
+                    logger.info("Saved recommendation in user_history: userId={}, itemId={}", user.getId(), itemId);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to save recommendation in user_history", e);
+        }
+
+        // 5. 생성된 응답 메시지를 저장
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setUser(user);
         chatMessage.setMessage(botResponse);

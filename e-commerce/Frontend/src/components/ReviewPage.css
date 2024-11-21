@@ -1,0 +1,195 @@
+/* 페이지 컨테이너 */
+.review-page-container {
+    background: linear-gradient(to bottom, #6c63ff, #c6bffb); /* 배경 그라디언트 */
+    min-height: 100vh; /* 화면 전체 높이 */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* 컴포넌트 간 간격 */
+}
+
+/* 제목 스타일 */
+.review-page-container h2 {
+    font-size: 28px;
+    color: #ffffff;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 제목 그림자 효과 */
+}
+
+/* 에러 메시지 */
+.error-message {
+    color: red;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* 제품 카드 그리드 */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* 반응형 레이아웃 */
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* 각 제품 카드 */
+.item-card {
+    background-color: #ffffff; /* 흰색 배경 */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.item-card:hover {
+    transform: translateY(-5px); /* 호버 시 위로 살짝 떠오름 */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 그림자 강조 */
+}
+
+/* 제품 이미지 */
+.item-image {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* 제품 이름 */
+.item-card h3 {
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* 제품 정보 */
+.item-card p {
+    font-size: 14px;
+    color: #555;
+    margin: 5px 0;
+}
+
+/* 리뷰 버튼 */
+.review-button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #6c63ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.review-button:hover {
+    background-color: #5a54d8;
+}
+
+/* 리뷰 모달 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* 반투명 검은 배경 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.modal-content h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* 별점 입력 */
+.rating-input {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.star {
+    font-size: 24px;
+    color: #ccc; /* 기본 별 색상 */
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.star.selected {
+    color: #ffc107; /* 선택된 별 색상 */
+}
+
+.star:hover {
+    color: #ffdd57; /* 호버된 별 색상 */
+}
+
+/* 리뷰 입력창 */
+.review-textarea {
+    width: 80%;
+    height: 80px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: none; /* 크기 조절 비활성화 */
+    margin-bottom: 20px;
+}
+
+/* 모달 버튼 */
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.save-button,
+.cancel-button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.save-button {
+    background-color: #6c63ff;
+    color: white;
+}
+
+.save-button:hover {
+    background-color: #5a54d8;
+}
+
+.cancel-button {
+    background-color: #ccc;
+    color: #333;
+}
+
+.cancel-button:hover {
+    background-color: #aaa;
+}

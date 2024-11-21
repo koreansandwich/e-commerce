@@ -8,6 +8,7 @@ import Dashboard from "./components/Dashboard";
 import Settings from "./components/Settings";
 import EditAccountInfo from './components/EditAccountInfo';
 import ChangePassword from './components/ChangePassword';
+import ReviewPage from "./components/ReviewPage";
 
 function App() {
     return (
@@ -49,7 +50,7 @@ function AppContent() {
                                 {/* 로그아웃 버튼 */}
                                 <button className="nav-link button" onClick={handleLogout}>로그아웃</button>
                                 {/* 설정 페이지로 이동하는 링크 */}
-                                <Link to="/settings" className="nav-link button">설정</Link>
+                                <Link to="/dashboard" className="nav-link button">메인 화면</Link>
                             </>
                         ) : (
                             <>
@@ -70,6 +71,7 @@ function AppContent() {
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/edit-account" element={<EditAccountInfo />} />
                     <Route path="/change-password" element={<ChangePassword />} />
+                    <Route path="/review-items" element={<ReviewPage />} />
                     <Route path="*" element={<React.Fragment><h1>404: Page Not Found</h1></React.Fragment>} />
                 </Routes>
             </header>

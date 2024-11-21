@@ -47,4 +47,14 @@ public class UserService {
         }
         return false;
     }
+
+    /**
+     * 이메일을 기반으로 사용자 정보를 가져옵니다.
+     *
+     * @param email 사용자의 이메일
+     * @return User 객체 (없을 경우 RuntimeException 발생)
+     */
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 }

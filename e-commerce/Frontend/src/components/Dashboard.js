@@ -12,7 +12,7 @@ const Dashboard = () => (
                 <img src={chatbotIcon} alt="Chatbot" className="card-icon" />
                 <h2>챗봇</h2>
             </div>
-            <div className="card" onClick={() => window.location.href = '/ecommerce'}>
+            <div className="card" onClick={() => window.location.href = '/review-items'}>
                 <img src={ecommerceIcon} alt="E-Commerce" className="card-icon" />
                 <h2>구매 제품 리뷰</h2>
             </div>
