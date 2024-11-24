@@ -3,6 +3,7 @@ import backend.DTO.ItemDTO;
 import backend.entity.User;
 import backend.security.JwtUtil;
 import backend.service.ReviewService;
+import backend.service.SimilarRecommendationService;
 import backend.service.UserService;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.ResponseEntity;
@@ -18,16 +19,18 @@ public class ReviewController {
     private final ReviewService reviewService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final SimilarRecommendationService similarRecommendationService;
 
     /**
      * ReviewController 생성자: ReviewService를 주입받습니다.
      *
      * @param reviewService 리뷰 및 평점 관리를 위한 서비스
      */
-    public ReviewController(ReviewService reviewService, UserService userService, JwtUtil jwtUtil) {
+    public ReviewController(ReviewService reviewService, UserService userService, JwtUtil jwtUtil, SimilarRecommendationService similarRecommendationService) {
         this.reviewService = reviewService;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.similarRecommendationService = similarRecommendationService;
     }
 
     /**
@@ -56,6 +59,18 @@ public class ReviewController {
          * @param reviewData 리뷰 데이터(JSON 형식)
          * @return 성공 메시지
          */
+    }
+
+    /**
+     * 특정 제품에 대한 카테고리별 추천 상품을 가져옵니다.
+     *
+     * @param itemId 추천 대상 제품 ID
+     * @return 카테고리별 추천 상품
+     */
+    @GetMapping("/{itemId}/recommendations")
+    public ResponseEntity<Map<String, List<ItemDTO>>> getRecommendedItemsByCategories(@PathVariable Long itemId) {
+        Map<String, List<ItemDTO>> recommendedItems = similarRecommendationService.getRecommendedItemsByCategories(itemId);
+        return ResponseEntity.ok(recommendedItems);
     }
 
     @PostMapping("/save")
@@ -108,7 +123,7 @@ public class ReviewController {
         Long itemId = ((Number) confirmData.get("itemId")).longValue();
 
         // 구매 확정 로직 호출
-        reviewService.confirmPurchase(user.getId(), itemId);
+        reviewService.confirmOrCreatePurchase(user.getId(), itemId);
 
         return ResponseEntity.ok("구매가 성공적으로 확정되었습니다.");
     }

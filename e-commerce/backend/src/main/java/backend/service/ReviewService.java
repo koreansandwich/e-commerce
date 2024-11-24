@@ -85,9 +85,22 @@ public class ReviewService {
     }
 
     @Transactional
-    public void confirmPurchase(Long userId, Long itemId) {
-        userHistoryRepository.updatePurchaseStatus(userId, itemId, true);
+    public void confirmOrCreatePurchase(Long userId, Long itemId) {
+        Optional<UserHistory> existingHistory = userHistoryRepository.findByUserIdAndItemId(userId, itemId);
+
+        if (existingHistory.isPresent()) {
+            // 기존 구매 기록이 있다면 구매 상태를 업데이트
+            userHistoryRepository.updatePurchaseStatus(userId, itemId, true);
+        } else {
+            // 구매 기록이 없다면 새로 추가
+            UserHistory newHistory = new UserHistory();
+            newHistory.setUserId(userId);
+            newHistory.setItemId(itemId);
+            newHistory.setIsPurchased(true);
+            userHistoryRepository.save(newHistory);
+        }
     }
+
 
 }
 
