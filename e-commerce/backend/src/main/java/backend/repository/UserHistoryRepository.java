@@ -38,4 +38,9 @@ public interface UserHistoryRepository extends JpaRepository<UserHistory, Long> 
     void updatePurchaseStatus(@Param("userId") Long userId, @Param("itemId") Long itemId, @Param("status") Boolean status);
 
 
+    @Modifying
+    @Query("DELETE FROM UserHistory uh WHERE uh.userId = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
+
+
 }

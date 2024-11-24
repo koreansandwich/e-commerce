@@ -7,6 +7,7 @@ import backend.security.JwtUtil;
 import backend.service.SettingsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -87,6 +88,16 @@ public class SettingsController {
 
         settingsService.changePassword(email, currentPassword, newPassword);
         return "Password updated successfully";
+    }
+
+    @DeleteMapping("/reset-history")
+    public ResponseEntity<String> resetUserHistory(@RequestHeader("Authorization") String token) {
+        String jwt = token.substring(7); // "Bearer " 제거
+        String email = jwtUtil.extractUsername(jwt); // JWT에서 이메일 추출
+        User user = settingsService.getUserAccountByEmail(email); // 사용자 정보 조회
+
+        settingsService.resetUserHistory(user.getId()); // 기록 초기화
+        return ResponseEntity.ok("User history reset successfully.");
     }
 
 

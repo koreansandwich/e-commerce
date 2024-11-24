@@ -3,10 +3,13 @@ package backend.service;
 import backend.DTO.MessageDTO;
 import backend.entity.ChatMessage;
 import backend.entity.User;
+import backend.entity.UserHistory;
 import backend.repository.ChatMessageRepository;
+import backend.repository.UserHistoryRepository;
 import backend.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +26,7 @@ public class SettingsService {
     private final UserRepository userRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserHistoryRepository userHistoryRepository;
 
     public User getUserAccountByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -30,10 +34,11 @@ public class SettingsService {
 
 
     @Autowired
-    public SettingsService(UserRepository userRepository, ChatMessageRepository chatMessageRepository) {
+    public SettingsService(UserRepository userRepository, ChatMessageRepository chatMessageRepository, UserHistoryRepository userHistoryRepository) {
         this.userRepository = userRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.userHistoryRepository = userHistoryRepository;
     }
 
     public User getUserById(Long userId) {
@@ -88,7 +93,14 @@ public class SettingsService {
         userRepository.save(user);
     }
 
-
+    // 사용자 모든 기록 삭제
+    @Transactional
+    public void resetUserHistory(Long userId) {
+        // ChatMessage 삭제
+        chatMessageRepository.deleteAll(chatMessageRepository.findByUserId(userId));
+        // UserHistory 삭제
+        userHistoryRepository.deleteAllByUserId(userId);
+    }
 
 
 }
