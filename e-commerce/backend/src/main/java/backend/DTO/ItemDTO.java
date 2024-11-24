@@ -6,27 +6,20 @@ import lombok.Setter;
 /**
  * ItemDTO는 필요한 필드만 클라이언트로 전달하기 위한 클래스입니다.
  */
+@Setter
+@Getter
 public class ItemDTO {
 
     // Getters and Setters
-    @Setter
-    @Getter
     private Long itemId;
-    @Setter
-    @Getter
     private String itemName;
-    @Setter
-    @Getter
     private String itemLink;
-    @Setter
-    @Getter
     private String itemImageUrl;
-    @Setter
-    @Getter
     private Integer itemFinalPrice;
-    @Setter
-    @Getter
     private String brand;
+
+    private UserReviewDTO userReview;
+    private Boolean isPurchased;
 
     public ItemDTO(Long itemId, String itemName, String itemImageUrl, String itemLink, Integer itemFinalPrice, String brand) {
         this.itemId = itemId;

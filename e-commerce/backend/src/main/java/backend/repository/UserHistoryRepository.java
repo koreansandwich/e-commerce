@@ -2,6 +2,7 @@ package backend.repository;
 
 import backend.entity.UserHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,4 +32,10 @@ public interface UserHistoryRepository extends JpaRepository<UserHistory, Long> 
      */
     @Query("SELECT uh FROM UserHistory uh WHERE uh.userId = :userId AND uh.itemId = :itemId")
     Optional<UserHistory> findByUserIdAndItemId(@Param("userId") Long userId, @Param("itemId") Long itemId);
+
+    @Modifying
+    @Query("UPDATE UserHistory uh SET uh.isPurchased = :status WHERE uh.userId = :userId AND uh.itemId = :itemId")
+    void updatePurchaseStatus(@Param("userId") Long userId, @Param("itemId") Long itemId, @Param("status") Boolean status);
+
+
 }

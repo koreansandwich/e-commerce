@@ -33,8 +33,8 @@ const ReviewPage = () => {
 
     const handleOpenReviewModal = (item) => {
         setSelectedItem(item);
-        setRating(item.rating || 0); // 기존 별점이 있으면 기본값으로 설정
-        setReview(item.review || ""); // 기존 리뷰가 있으면 기본값으로 설정
+        setRating(item.userReview?.rating || 0); // 기존 별점이 있으면 기본값으로 설정
+        setReview(item.userReview?.review || ""); // 기존 리뷰가 있으면 기본값으로 설정
     };
 
     const handleSaveReview = () => {
@@ -72,38 +72,30 @@ const ReviewPage = () => {
             });
     };
 
-    // 별점 수정 시 데이터 업데이트
-    const handleRatingUpdate = (newRating) => {
-        setRating(newRating);
-
+    const handleConfirmPurchase = (itemId) => {
         const token = localStorage.getItem("token");
         axios
             .post(
-                "http://localhost:8080/api/review/save",
-                {
-                    userId: selectedItem.userId,
-                    itemId: selectedItem.itemId,
-                    rating: newRating,
-                    review,
-                },
+                "http://localhost:8080/api/review/confirm",
+                { itemId },
                 { headers: { Authorization: `Bearer ${token}` } }
             )
             .then(() => {
-                alert("별점이 수정되었습니다.");
-                // 업데이트된 데이터 UI 반영
+                alert("구매가 성공적으로 확정되었습니다.");
                 setItems((prevItems) =>
                     prevItems.map((item) =>
-                        item.itemId === selectedItem.itemId
-                            ? { ...item, rating: newRating }
+                        item.itemId === itemId
+                            ? { ...item, isPurchased: true }
                             : item
                     )
                 );
             })
             .catch((err) => {
-                console.error("별점 수정 실패:", err);
-                alert("별점 수정에 실패했습니다.");
+                console.error("구매 확정 실패:", err);
+                alert("구매를 확정하는 데 실패했습니다.");
             });
     };
+
 
     const handleCloseReviewModal = () => {
         setSelectedItem(null); // 선택된 아이템 초기화
@@ -127,12 +119,19 @@ const ReviewPage = () => {
                         <h3>{item.itemName}</h3>
                         <p>가격: {item.itemFinalPrice}원</p>
                         <p>브랜드: {item.brand}</p>
-                        <button
-                            onClick={() => handleOpenReviewModal(item)}
-                            className="review-button"
-                        >
-                            리뷰 남기기
-                        </button>
+                            <button
+                                onClick={() => handleConfirmPurchase(item.itemId)}
+                                className="purchase-button"
+                                disabled={item.isPurchased} // 구매 확정된 경우 버튼 비활성화
+                            >
+                                {item.isPurchased ? "구매 확정 완료" : "구매 확정"}
+                            </button>
+                            <button
+                                onClick={() => handleOpenReviewModal(item)}
+                                className="review-button"
+                            >
+                                리뷰 남기기
+                            </button>
                     </div>
                 ))}
             </div>

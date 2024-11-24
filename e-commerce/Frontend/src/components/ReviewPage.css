@@ -76,17 +76,36 @@
     margin: 5px 0;
 }
 
-/* 리뷰 버튼 */
+
+/* 각 제품 카드 버튼 스타일 */
+.purchase-button,
 .review-button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    background-color: #6c63ff;
-    color: white;
+    display: block; /* 버튼을 독립적으로 배치 */
+    margin: 10px auto; /* 상하 간격과 가운데 정렬 */
+    padding: 12px 25px; /* 버튼 크기 조정 */
     border: none;
     border-radius: 4px;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    text-align: center;
+    width: 150px; /* 동일한 버튼 너비 설정 */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* 부드러운 효과 */
+}
+
+/* 구매 확정 버튼 */
+.purchase-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.purchase-button:hover {
+    background-color: #218838;
+}
+
+/* 리뷰 남기기 버튼 */
+.review-button {
+    background-color: #6c63ff;
+    color: white;
 }
 
 .review-button:hover {

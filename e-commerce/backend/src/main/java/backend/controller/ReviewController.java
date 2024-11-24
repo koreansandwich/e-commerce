@@ -83,4 +83,34 @@ public class ReviewController {
 
         return ResponseEntity.ok("리뷰가 성공적으로 저장되었습니다.");
     }
+
+    /**
+     * 구매 확정 API
+     * 특정 제품에 대해 구매를 확정합니다.
+     *
+     * @param token Authorization 헤더에서 JWT 추출
+     * @param confirmData itemId가 포함된 요청 데이터
+     * @return 성공 메시지
+     */
+    @PostMapping("/confirm")
+    public ResponseEntity<String> confirmPurchase(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Map<String, Object> confirmData
+    ) {
+        String jwt = token.substring(7); // "Bearer " 제거
+        String email = jwtUtil.extractUsername(jwt); // JWT에서 이메일 추출
+        User user = userService.getUserByEmail(email);
+
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다."); // 예외 처리
+        }
+
+        Long itemId = ((Number) confirmData.get("itemId")).longValue();
+
+        // 구매 확정 로직 호출
+        reviewService.confirmPurchase(user.getId(), itemId);
+
+        return ResponseEntity.ok("구매가 성공적으로 확정되었습니다.");
+    }
 }
+

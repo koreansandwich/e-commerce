@@ -1,14 +1,19 @@
 package backend.service;
 
 import backend.DTO.ItemDTO;
+import backend.DTO.UserReviewDTO;
+import backend.entity.Item;
 import backend.entity.User;
 import backend.repository.UserHistoryRepository;
 import backend.repository.ItemRepository;
 import backend.entity.UserHistory;
 import backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * ReviewService는 사용자가 구매한 제품에 대한 리뷰 및 평점 관리 기능을 제공합니다.
@@ -19,7 +24,6 @@ import java.util.List;
 
 @Service
 public class ReviewService {
-    private final UserRepository userRepository;
     private final UserHistoryRepository userHistoryRepository;
     private final ItemRepository itemRepository;
 
@@ -32,13 +36,8 @@ public class ReviewService {
     public ReviewService(UserRepository userRepository, UserHistoryRepository userHistoryRepository, ItemRepository itemRepository) {
         this.userHistoryRepository = userHistoryRepository;
         this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
     }
 
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
     /**
      * 사용자가 구매한 제품 리스트를 조회합니다.
      *
@@ -46,17 +45,20 @@ public class ReviewService {
      * @return 사용자가 구매한 제품 리스트 (제품의 주요 정보 포함)
      */
     public List<ItemDTO> getReviewItems(Long userId) {
-        // 1. user_history 테이블에서 해당 사용자가 구매한 item_id 조회
         List<Long> itemIds = userHistoryRepository.findItemIdsByUserId(userId);
-
-        // 2. items 테이블에서 itemIds로 데이터 조회
         List<ItemDTO> items = itemRepository.findItemsByIds(itemIds);
 
+        // UserHistory 데이터를 기반으로 ItemDTO에 UserReviewDTO 추가
         for (ItemDTO item : items) {
-            System.out.println("Item Name: " + item.getItemName());
-            System.out.println("Item Image URL: " + item.getItemImageUrl());
-            System.out.println("Item Link: " + item.getItemLink());
+            userHistoryRepository.findByUserIdAndItemId(userId, item.getItemId())
+                    .ifPresent(history -> {
+                        UserReviewDTO userReviewDTO = new UserReviewDTO(item.getItemId(), history.getRating(), history.getReview());
+                        item.setUserReview(userReviewDTO);
+
+                        item.setIsPurchased(history.getIsPurchased());
+                    });
         }
+
 
         return items;
     }
@@ -81,6 +83,12 @@ public class ReviewService {
         // 변경된 데이터 저장
         userHistoryRepository.save(userHistory);
     }
+
+    @Transactional
+    public void confirmPurchase(Long userId, Long itemId) {
+        userHistoryRepository.updatePurchaseStatus(userId, itemId, true);
+    }
+
 }
 
 
