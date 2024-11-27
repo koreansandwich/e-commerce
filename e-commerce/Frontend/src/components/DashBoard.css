@@ -1,0 +1,136 @@
+/* 대시보드 전체 컨테이너 */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 추천 제품 섹션 */
+.recommendations-section {
+    position: absolute;
+    top: 90px; /* 내비게이션 바 아래 위치 */
+    right: 20px; /* 오른쪽에 붙임 */
+    width: 75%; /* 화면의 50% 너비 */
+    height: 250px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+/* 추천 제품 그리드 */
+.recommendations-section .items-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); /* 한 줄에 4개 */
+    gap: 10px;
+}
+
+
+/* 추천 제품 섹션 제목 */
+.recommendations-section h2 {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333; /* 검정색 */
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* 추천 제품 카드 */
+.recommendations-section .item-card {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 이미지 스타일 */
+.recommendations-section .item-card img {
+    width: 100%;
+    max-width: 60px; /* 크기 축소 */
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    cursor: pointer; /* 클릭 가능한 커서 */
+}
+
+
+/* 추천 제품 텍스트 */
+.recommendations-section .item-card h3 {
+    font-size: 10px; /* 텍스트 크기 축소 */
+    color: #000;
+    margin-bottom: 5px;
+    line-height: 1.2;
+    height: 28px; /* 텍스트 최대 높이 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recommendations-section .item-card p {
+    font-size: 10px;
+    color: #000;
+    margin: 2px 0;
+}
+
+/* 구매 확정 버튼 */
+.recommendations-section .item-card .purchase-button {
+    margin-top: 5px;
+    padding: 5px 10px;
+    font-size: 10px;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100px;
+}
+
+.recommendations-section .item-card .purchase-button:hover {
+    background-color: #5a54d8;
+}
+
+.recommendations-section .item-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+/* 프로필 섹션 */
+.profile-section {
+    position: absolute; /* 화면 상단 고정 */
+    top: 90px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: start; /* 내용을 왼쪽으로 정렬 */
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 300; /* 다른 요소보다 위에 배치 */
+    width: 260px;
+    height: 250px; /* 높이 자동 조정 */
+    overflow: hidden; /* 내용이 넘치지 않도록 */
+}
+
+
+.profile-section img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.profile-section .profile-info {
+    font-size: 14px;
+    color: #333;
+}
+
+.profile-section .profile-info p {
+    margin: 5px 0;
+}

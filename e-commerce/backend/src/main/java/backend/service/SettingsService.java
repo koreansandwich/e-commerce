@@ -46,6 +46,8 @@ public class SettingsService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+
+
     public void updateUserAccount(Long userId, String newName, String newBirthDate, String newGender) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -65,6 +67,8 @@ public class SettingsService {
 
         userRepository.save(user);
     }
+
+
 
     // 사용자 챗봇 대화 내역 불러오기
     public List<ChatMessage> getUserChatHistory(Long userId) {

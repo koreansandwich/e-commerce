@@ -22,7 +22,7 @@ const LoginForm = () => (
                             const token = response.data;
                             localStorage.setItem("token", token);
                             console.log("Login successful, token stored:", token);
-                            window.location.href = "/dashboard"; // 대시보드로 이동
+                            window.location.href = "/mainboard"; // 대시보드로 이동
                         }
                     })
                     .catch((error) => {

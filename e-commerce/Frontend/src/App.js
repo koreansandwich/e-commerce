@@ -4,9 +4,10 @@ import LoginForm from "./components/LoginForm";
 import './App.css';
 import RegisterForm from "./components/RegisterForm";
 import ChatbotInterface from "./components/ChatbotInterface";
-import Dashboard from "./components/Dashboard";
+import MainBoard from "./components/MainBoard";
 import Settings from "./components/Settings";
 import ReviewPage from "./components/ReviewPage";
+import DashBoard from "./components/DashBoard";
 
 function App() {
     return (
@@ -48,7 +49,7 @@ function AppContent() {
                                 {/* 로그아웃 버튼 */}
                                 <button className="nav-link button" onClick={handleLogout}>로그아웃</button>
                                 {/* 설정 페이지로 이동하는 링크 */}
-                                <Link to="/dashboard" className="nav-link button">메인 화면</Link>
+                                <Link to="/mainboard" className="nav-link button">메인 화면</Link>
                             </>
                         ) : (
                             <>
@@ -64,10 +65,11 @@ function AppContent() {
                 <Routes>
                     <Route path="/login" element={<LoginForm />} />
                     <Route path="/register" element={<RegisterForm />} />
-                    <Route path="/dashboard" element={<Dashboard />} /> {/* 대시보드 경로 추가 */}
+                    <Route path="/mainboard" element={<MainBoard />} /> {/* 메인보드 경로 추가 */}
                     <Route path="/chatbot" element={<ChatbotInterface />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/review-items" element={<ReviewPage />} />
+                    <Route path="/dashboard" element={<DashBoard />} />
                     <Route path="*" element={<React.Fragment><h1>404: Page Not Found</h1></React.Fragment>} />
                 </Routes>
             </header>
