@@ -1,10 +1,13 @@
-/* 대시보드 전체 컨테이너 */
 .dashboard-container {
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0; /* 불필요한 내부 여백 제거 */
+    background-color: transparent; /* 배경색 제거 */
+    box-shadow: none; /* 테두리 그림자 제거 */
+    border: none; /* 테두리 제거 */
 }
 
 /* 추천 제품 섹션 */
@@ -106,22 +109,23 @@
     top: 90px;
     left: 20px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: start; /* 내용을 왼쪽으로 정렬 */
+    justify-content: center; /* 내용을 왼쪽으로 정렬 */
     padding: 15px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 300; /* 다른 요소보다 위에 배치 */
-    width: 260px;
-    height: 250px; /* 높이 자동 조정 */
+    width: 17%;
+    height: 32%; /* 높이 자동 조정 */
     overflow: hidden; /* 내용이 넘치지 않도록 */
 }
 
 
 .profile-section img {
-    width: 60px;
-    height: 60px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
     margin-right: 15px;
 }
@@ -129,8 +133,68 @@
 .profile-section .profile-info {
     font-size: 14px;
     color: #333;
+    font-weight: bold; /* 글씨를 굵게 설정 */
 }
 
 .profile-section .profile-info p {
     margin: 5px 0;
+    font-weight: bold; /* 각 <p> 태그의 글씨를 굵게 설정 */
 }
+
+/* Statistics Section 전체 */
+.statistics-section {
+    position: absolute;
+    top: 52%; /* 추천 제품 섹션 바로 아래 */
+    left: 20px;
+    width: 95%; /* 전체 너비 */
+    background-color: #ffffff; /* 흰색 배경 */
+    border-radius: 8px; /* 둥근 모서리 */
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 추가 */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4개의 칸으로 분리 */
+    gap: 20px; /* 칸 간격 */
+}
+
+/* 개별 칸 스타일 */
+.statistics-card, .chart-card, .keyword-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: transparent; /* 개별 칸의 배경 제거 */
+    border: none; /* 경계선 제거 */
+}
+
+/* 제목 스타일 */
+.statistics-card h3, .chart-card h3, .keyword-card h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+/* 내용 스타일 */
+.statistics-card p, .chart-card p, .keyword-card p {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* 차트 스타일 */
+.chart-container {
+    width: 90%;
+    margin: 0 auto; /* 차트를 중앙에 정렬 */
+}
+
+.keyword-card ol {
+    list-style-type: decimal;
+    padding-left: 20px;
+}
+
+.keyword-card li {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 5px;
+}
+

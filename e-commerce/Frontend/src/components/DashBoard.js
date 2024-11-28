@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./DashBoard.css";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
 
 const DashBoard = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [items, setItems] = useState([]); // 구매한 제품 리스트
     const [profile, setProfile] = useState(null);
+    const [statistics, setStatistics] = useState(null); // 사용자 통계 데이터
+    const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088FE"]; // 차트 색상
+    const [ratingData, setRatingData] = useState([]); // 별점 데이터를 저장할 상태
+    const [topKeywords, setTopKeywords] = useState([]);
 
     useEffect(() => {
         const token = localStorage.getItem("token"); // JWT 토큰 가져오기
@@ -27,6 +32,17 @@ const DashBoard = () => {
                 console.error("추천 정보를 가져오는 데 실패했습니다:", err);
             });
 
+        axios
+            .get("http://localhost:8080/api/dashboard/statistics", {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((response) => {
+                setStatistics(response.data); // 통계 데이터 저장
+            })
+            .catch((err) => {
+                console.error("사용자 통계를 가져오는 데 실패했습니다:", err);
+            });
+
         // 프로필 정보 가져오기
         axios
             .get("http://localhost:8080/api/dashboard/profile", {
@@ -38,6 +54,25 @@ const DashBoard = () => {
             .catch((err) => {
                 console.error("프로필 정보를 가져오는 데 실패했습니다:", err);
             });
+        axios
+            .get("http://localhost:8080/api/dashboard/rating-distribution", {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((response) => {
+                const data = Object.entries(response.data).map(([key, value]) => ({
+                    name: `${key}점`,
+                    value: value,
+                }));
+                setRatingData(data); // 데이터를 상태로 저장
+            })
+            .catch((err) => console.error("별점 분포 데이터를 가져오는 데 실패했습니다:", err));
+
+        axios
+            .get("http://localhost:8080/api/dashboard/top-keywords", {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((response) => setTopKeywords(response.data))
+            .catch((err) => console.error("키워드 데이터를 가져오는 데 실패했습니다:", err));
     }, []);
 
     const handleConfirmPurchase = (itemId) => {
@@ -73,17 +108,18 @@ const DashBoard = () => {
             {profile && (
                 <div className="profile-section">
                     <img
-                        src={profile?.imageUrl || "/default-profile.png"}
+                        src={"https://koreansandwich-ecommerce-item-image.s3.ap-southeast-2.amazonaws.com/cute-profile-image.png"}
                         alt="프로필"
                         onError={(e) => (e.target.src = "/default-profile.png")}
                     />
                     <div className="profile-info">
-                        <p>이름: {profile.name}</p>
-                        <p>나이: {profile.age}</p>
-                        <p>성별: {profile.gender}</p>
+                        <br/>
+                        <p>{profile.name}</p>
+                        <p>{profile.age} / {profile.gender}</p>
                     </div>
                 </div>
             )}
+
             {/* 추천 제품 섹션 */}
             <div className="recommendations-section">
                 <h2>추천 제품</h2>
@@ -108,6 +144,84 @@ const DashBoard = () => {
                     ))}
                 </div>
             </div>
+
+            {/* 통계 섹션 */}
+            {statistics && (
+                <div className="statistics-section">
+                    {/* 구매 통계 칸 */}
+                    <div className="statistics-card">
+                        <h3>구매 통계</h3>
+                        <p>구매 횟수: {statistics.purchaseCount}</p>
+                        <p>리뷰 개수: {statistics.reviewCount}</p>
+                        <p>평균 별점: {statistics.averageRating.toFixed(2)}</p>
+                    </div>
+
+                    {/* 구매한 제품 카테고리 칸 */}
+                    <div className="chart-card">
+                        <h3>구매한 제품 카테고리</h3>
+                        <div className="chart-container">
+                            <PieChart width={200} height={200}>
+                                <Pie
+                                    data={Object.entries(statistics.purchasedCategories).map(([key, value]) => ({
+                                        name: key,
+                                        value: value,
+                                    }))}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                >
+                                    {Object.keys(statistics.purchasedCategories).map((_, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend
+                                    layout="horizontal"
+                                    align="center"
+                                    verticalAlign="bottom"
+                                    wrapperStyle={{ fontSize: '12px' }} />
+                            </PieChart>
+
+                        </div>
+                    </div>
+
+                    {/* 평균 별점 분포 칸 */}
+                    <div className="chart-card">
+                        <h3>평균 별점 분포</h3>
+                        <div className="chart-container">
+                            <BarChart
+                                width={200}
+                                height={200}
+                                data={ratingData}
+                            >
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#82ca9d" />
+                            </BarChart>
+                        </div>
+                    </div>
+
+                    <div className="keyword-card">
+                        <h3>선호 키워드</h3>
+                        {topKeywords.length > 0 ? (
+                            <ul>
+                                {topKeywords.map((keyword, index) => (
+                                    <li key={index}>{index + 1}위: {keyword}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>데이터 없음</p>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

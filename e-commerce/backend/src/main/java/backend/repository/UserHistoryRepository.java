@@ -1,5 +1,6 @@
 package backend.repository;
 
+import backend.DTO.UserStatisticsDTO;
 import backend.entity.UserHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -41,6 +42,34 @@ public interface UserHistoryRepository extends JpaRepository<UserHistory, Long> 
     @Modifying
     @Query("DELETE FROM UserHistory uh WHERE uh.userId = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);
+
+    @Query(value = "SELECT " +
+            "COUNT(DISTINCT uh.rating_id) AS purchaseCount, " +
+            "COUNT(uh.review) AS reviewCount, " +
+            "COALESCE(AVG(uh.rating), 0) AS averageRating " +
+            "FROM user_history uh " +
+            "WHERE uh.user_id = :userId", nativeQuery = true)
+    List<Object[]> findUserStatisticsRaw(@Param("userId") Long userId);
+
+
+    @Query(value = "SELECT " +
+            "i.item_type AS category, " +
+            "COUNT(uh.item_id) AS count " +
+            "FROM user_history uh " +
+            "JOIN items i ON uh.item_id = i.item_id " +
+            "WHERE uh.user_id = :userId " +
+            "GROUP BY i.item_type", nativeQuery = true)
+    List<Object[]> findPurchasedCategories(@Param("userId") Long userId);
+
+    @Query(value = "SELECT uh.rating AS rating, COUNT(*) AS count " +
+            "FROM user_history uh " +
+            "WHERE uh.user_id = :userId AND uh.rating IS NOT NULL " +
+            "GROUP BY uh.rating " +
+            "ORDER BY uh.rating", nativeQuery = true)
+    List<Object[]> findRatingDistribution(@Param("userId") Long userId);
+
+
+
 
 
 }

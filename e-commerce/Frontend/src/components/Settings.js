@@ -164,7 +164,7 @@ const Settings = () => {
             <h2>Settings</h2>
             <div className="profile-image">
                 <img
-                    src={profileImage || "https://via.placeholder.com/100"} // 기본 이미지 또는 업로드된 이미지
+                    src={"https://koreansandwich-ecommerce-item-image.s3-ap-southeast-2.amazonaws.com/cute-profile-image.png"} // 기본 이미지 또는 업로드된 이미지
                     alt="Profile"
                 />
                 <label htmlFor="profile-upload" className="edit-profile-button">

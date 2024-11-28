@@ -1,6 +1,7 @@
 package backend.controller;
 
 import backend.DTO.ItemDTO;
+import backend.DTO.UserStatisticsDTO;
 import backend.entity.Item;
 import backend.entity.UserRecommendation;
 import backend.entity.User;
@@ -8,6 +9,7 @@ import backend.repository.ItemRepository;
 import backend.security.JwtUtil;
 import backend.service.UserRecommendationService;
 import backend.service.UserService;
+import backend.service.UserStatisticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,13 +24,15 @@ public class DashboardController {
     private final UserRecommendationService userRecommendationService;
     private final JwtUtil jwtUtil;
     private final ItemRepository itemRepository;
+    private final UserStatisticsService userStatisticsService;
 
     // 생성자 주입
-    public DashboardController(UserService userService, UserRecommendationService userRecommendationService, JwtUtil jwtUtil, ItemRepository itemRepository) {
+    public DashboardController(UserService userService, UserRecommendationService userRecommendationService, JwtUtil jwtUtil, ItemRepository itemRepository, UserStatisticsService userStatisticsService) {
         this.userService = userService;
         this.userRecommendationService = userRecommendationService;
         this.jwtUtil = jwtUtil;
         this.itemRepository = itemRepository;
+        this.userStatisticsService = userStatisticsService;
     }
 
     /**
@@ -125,5 +129,61 @@ public class DashboardController {
 
         return ResponseEntity.ok(user);
     }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<UserStatisticsDTO> getUserStatistics(@RequestHeader("Authorization") String token) {
+        // JWT에서 사용자 이메일 추출
+        String jwt = token.substring(7); // "Bearer " 제거
+        String email = jwtUtil.extractUsername(jwt); // JWT에서 이메일 추출
+
+        // 이메일로 사용자 조회
+        User user = userService.getUserByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+
+        // 통계 데이터 생성
+        UserStatisticsDTO statistics = userStatisticsService.getUserStatistics(user.getId());
+        if (statistics == null) {
+            System.out.println("[WARN] No statistics found for userId: " + user.getId());
+        } else {
+            System.out.println("[DEBUG] Retrieved Statistics: " + statistics);
+        }
+        return ResponseEntity.ok(statistics);
+    }
+
+    @GetMapping("/rating-distribution")
+    public ResponseEntity<Map<Integer, Integer>> getRatingDistribution(@RequestHeader("Authorization") String token) {
+        String jwt = token.substring(7); // "Bearer " 제거
+        String email = jwtUtil.extractUsername(jwt); // JWT에서 이메일 추출
+
+        User user = userService.getUserByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+
+        Map<Integer, Integer> ratingDistribution = userStatisticsService.getRatingDistribution(user.getId());
+        return ResponseEntity.ok(ratingDistribution);
+    }
+
+    @GetMapping("/top-keywords")
+    public ResponseEntity<List<String>> getTopKeywords(@RequestHeader("Authorization") String token) {
+        // JWT에서 사용자 이메일 추출
+        String jwt = token.substring(7); // "Bearer " 제거
+        String email = jwtUtil.extractUsername(jwt); // JWT에서 이메일 추출
+
+        // 이메일로 사용자 조회
+        User user = userService.getUserByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+
+        // 상위 키워드 가져오기
+        List<String> topKeywords = userStatisticsService.getTopKeywords(user.getId());
+
+        return ResponseEntity.ok(topKeywords);
+    }
+
+
 
 }
