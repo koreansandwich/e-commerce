@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import './RegisterForm.css';
+import { useNavigate } from 'react-router-dom';
+import styles from './RegisterForm.module.css'; // 모듈화된 CSS import
 
 const RegisterSchemaStep1 = Yup.object().shape({
     email: Yup.string().email('유효하지 않은 이메일 형식입니다.').required('이메일을 입력하세요'),
@@ -23,9 +24,11 @@ const RegisterSchemaStep2 = Yup.object().shape({
 
 const RegisterForm = () => {
     const [step, setStep] = useState(1);
+    const [isModalOpen, setModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     return (
-        <div className="register-form-container">
+        <div className={styles.container}>
             {step === 1 ? (
                 <Formik
                     initialValues={{ email: '', name: '', password: '', confirmPassword: '' }}
@@ -37,23 +40,23 @@ const RegisterForm = () => {
                 >
                     {({ isSubmitting }) => (
                         <Form>
-                            <div className="form-field">
-                                <Field type="email" name="email" placeholder="이메일" />
-                                <ErrorMessage name="email" component="div" className="error-message" />
+                            <div className={styles.field}>
+                                <Field type="email" name="email" placeholder="이메일" className={styles.input} />
+                                <ErrorMessage name="email" component="div" className={styles.error} />
                             </div>
-                            <div className="form-field">
-                                <Field type="text" name="name" placeholder="이름" />
-                                <ErrorMessage name="name" component="div" className="error-message" />
+                            <div className={styles.field}>
+                                <Field type="text" name="name" placeholder="이름" className={styles.input} />
+                                <ErrorMessage name="name" component="div" className={styles.error} />
                             </div>
-                            <div className="form-field">
-                                <Field type="password" name="password" placeholder="비밀번호" />
-                                <ErrorMessage name="password" component="div" className="error-message" />
+                            <div className={styles.field}>
+                                <Field type="password" name="password" placeholder="비밀번호" className={styles.input} />
+                                <ErrorMessage name="password" component="div" className={styles.error} />
                             </div>
-                            <div className="form-field">
-                                <Field type="password" name="confirmPassword" placeholder="비밀번호 확인" />
-                                <ErrorMessage name="confirmPassword" component="div" className="error-message" />
+                            <div className={styles.field}>
+                                <Field type="password" name="confirmPassword" placeholder="비밀번호 확인" className={styles.input} />
+                                <ErrorMessage name="confirmPassword" component="div" className={styles.error} />
                             </div>
-                            <button type="submit" disabled={isSubmitting}>다음</button>
+                            <button type="submit" className={styles.button} disabled={isSubmitting}>다음</button>
                         </Form>
                     )}
                 </Formik>
@@ -63,13 +66,11 @@ const RegisterForm = () => {
                     validationSchema={RegisterSchemaStep2}
                     onSubmit={(values, { setSubmitting }) => {
                         axios.post('http://localhost:8080/api/auth/register', values)
-                            .then((response) => {
-                                console.log(response.data);
-                                alert('회원가입이 완료되었습니다.');
+                            .then(() => {
+                                setModalOpen(true);
                                 setSubmitting(false);
                             })
-                            .catch((error) => {
-                                console.error(error);
+                            .catch(() => {
                                 alert('회원가입에 실패했습니다.');
                                 setSubmitting(false);
                             });
@@ -77,29 +78,45 @@ const RegisterForm = () => {
                 >
                     {({ isSubmitting, setFieldValue, values }) => (
                         <Form>
-                            <div className="form-field">
-                                <Field type="date" name="birthDate" placeholder="생년월일" />
-                                <ErrorMessage name="birthDate" component="div" className="error-message" />
+                            <div className={styles.field}>
+                                <Field type="date" name="birthDate" className={styles.input} />
+                                <ErrorMessage name="birthDate" component="div" className={styles.error} />
                             </div>
-                            <div className="form-field gender-select">
+                            <div className={styles.gender}>
                                 <label
-                                    className={`gender-button ${values.gender === '남성' ? 'selected' : ''}`}
+                                    className={`${styles.genderButton} ${values.gender === '남성' ? styles.selected : ''}`}
                                     onClick={() => setFieldValue('gender', '남성')}
                                 >
                                     남성
                                 </label>
                                 <label
-                                    className={`gender-button ${values.gender === '여성' ? 'selected' : ''}`}
+                                    className={`${styles.genderButton} ${values.gender === '여성' ? styles.selected : ''}`}
                                     onClick={() => setFieldValue('gender', '여성')}
                                 >
                                     여성
                                 </label>
-                                <ErrorMessage name="gender" component="div" className="error-message" />
+                                <ErrorMessage name="gender" component="div" className={styles.error} />
                             </div>
-                            <button type="submit" disabled={isSubmitting}>회원가입</button>
+                            <button type="submit" className={styles.button} disabled={isSubmitting}>회원가입</button>
                         </Form>
                     )}
                 </Formik>
+            )}
+            {isModalOpen && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <p className={styles.modalText}>회원가입이 완료되었습니다.</p>
+                        <button
+                            className={styles.modalButton}
+                            onClick={() => {
+                                setModalOpen(false);
+                                navigate("/login");
+                            }}
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

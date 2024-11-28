@@ -2,7 +2,7 @@ import React from "react";
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import './LoginForm.css';
+import styles from './LoginForm.module.css'; // 모듈화된 CSS import
 
 const LoginSchema = Yup.object().shape({
     email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -10,8 +10,8 @@ const LoginSchema = Yup.object().shape({
 });
 
 const LoginForm = () => (
-    <div className="login-form-container">
-        <h1>로그인</h1>
+    <div className={styles.container}>
+        <h1 className={styles.title}>로그인</h1>
         <Formik
             initialValues={{ email: '', password: '' }}
             validationSchema={LoginSchema}
@@ -40,20 +40,20 @@ const LoginForm = () => (
         >
             {({ isSubmitting }) => (
                 <Form>
-                    <div className="form-field">
-                        <Field type="email" name="email" placeholder="이메일" />
+                    <div className={styles.field}>
+                        <Field type="email" name="email" placeholder="이메일" className={styles.input} />
                     </div>
-                    <div className="form-field">
-                        <Field type="password" name="password" placeholder="비밀번호" />
+                    <div className={styles.field}>
+                        <Field type="password" name="password" placeholder="비밀번호" className={styles.input} />
                     </div>
-                    <button type="submit" disabled={isSubmitting}>
+                    <button type="submit" className={styles.button} disabled={isSubmitting}>
                         로그인
                     </button>
                 </Form>
             )}
         </Formik>
-        <div className="form-footer">
-            <a href="/register">회원가입 하기</a>
+        <div className={styles.footer}>
+            <a href="/register" className={styles.link}>회원가입 하기</a>
         </div>
     </div>
 );

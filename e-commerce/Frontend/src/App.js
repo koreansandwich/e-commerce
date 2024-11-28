@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Link, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Link, Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import LoginForm from "./components/LoginForm";
 import './App.css';
 import RegisterForm from "./components/RegisterForm";
@@ -63,14 +63,24 @@ function AppContent() {
 
                 {/* Routes 설정 */}
                 <Routes>
+                    {/* 루트 경로: 로그인 상태에 따라 이동 */}
+                    <Route
+                        path="/"
+                        element={isLoggedIn ? <Navigate to="/mainboard" /> : <Navigate to="/login" />}
+                    />
+
+                    {/* 로그인 및 회원가입 */}
                     <Route path="/login" element={<LoginForm />} />
                     <Route path="/register" element={<RegisterForm />} />
-                    <Route path="/mainboard" element={<MainBoard />} /> {/* 메인보드 경로 추가 */}
+                    <Route path="/mainboard" element={<MainBoard />} />
                     <Route path="/chatbot" element={<ChatbotInterface />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/review-items" element={<ReviewPage />} />
                     <Route path="/dashboard" element={<DashBoard />} />
-                    <Route path="*" element={<React.Fragment><h1>404: Page Not Found</h1></React.Fragment>} />
+
+
+                    {/* 404 처리 */}
+                    <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
             </header>
         </div>
