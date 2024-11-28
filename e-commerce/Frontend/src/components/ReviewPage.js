@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./ReviewPage.css";
+import styles from "./ReviewPage.module.css";
 
 const ReviewPage = () => {
     const [items, setItems] = useState([]); // 구매한 제품 리스트
@@ -10,6 +10,7 @@ const ReviewPage = () => {
     const [error, setError] = useState(""); // 에러 메시지
     const [recommendations, setRecommendations] = useState({}); // 추천 제품
     const [showRecommendations, setShowRecommendations] = useState(false); // 추천 제품 모달 상태
+    const [minHeight, setMinHeight] = useState("100vh");
 
     useEffect(() => {
         const token = localStorage.getItem("token"); // JWT 토큰 가져오기
@@ -31,7 +32,24 @@ const ReviewPage = () => {
                 console.error("구매 제품 정보를 가져오는 데 실패했습니다:", err);
                 setError("구매 제품 정보를 가져오는 데 실패했습니다.");
             });
-    }, []);
+        if (selectedItem) {
+            setRating(selectedItem.userReview?.rating || 0); // 기존 별점 기본값 설정
+            setReview(selectedItem.userReview?.review || ""); // 기존 리뷰 기본값 설정
+        }
+
+        const updateMinHeight = () => {
+            const pageHeight = document.body.scrollHeight;
+            const viewportHeight = window.innerHeight;
+            const calculatedHeight = Math.max(viewportHeight, pageHeight);
+            setMinHeight(`${calculatedHeight * 1.4}px`);
+        };
+
+        updateMinHeight();
+        window.addEventListener("resize", updateMinHeight);
+
+        return () => window.removeEventListener("resize", updateMinHeight);
+
+    }, [selectedItem]);
 
     const handleOpenRecommendations = (itemId) => {
         const token = localStorage.getItem("token");
@@ -126,37 +144,50 @@ const ReviewPage = () => {
 
 
     return (
-        <div className="review-page-container">
-            {error && <p className="error-message">{error}</p>}
-            <div className="items-grid">
+        <div className={styles.reviewPageContainer}
+             style={{
+                 background: "linear-gradient(to bottom, #6c63ff, #c6bffb)",
+                 minHeight,
+                 padding: "20px",
+                 display: "flex",
+                 flexDirection: "column",
+                 alignItems: "center",
+                 gap: "20px",
+             }}>
+            {error && <p className={styles.errorMessage}>{error}</p>}
+            <div className={styles.itemsGrid}>
                 {items.map((item) => (
-                    <div key={item.itemId} className="item-card">
+                    <div key={item.itemId} className={styles.itemCard}>
                         <img
                             src={item.itemImageUrl}
                             alt={item.itemName}
-                            className="item-image"
-                            onClick={() => window.open(item.itemLink, "_blank")} // 새 탭에서 링크 열기
-                            style={{cursor: "pointer"}} // 마우스 포인터 변경
+                            className={styles.itemImage}
+                            onClick={() => window.open(item.itemLink, "_blank")}
+                            style={{ cursor: "pointer" }}
                         />
-                        <h3>{item.itemName}</h3>
-                        <p>가격: {item.itemFinalPrice}원</p>
-                        <p>브랜드: {item.brand}</p>
+                        <h3 className={styles.itemTitle}>{item.itemName}</h3>
+                        <p className={styles.itemDetails}>
+                            가격: {item.itemFinalPrice}원
+                        </p>
+                        <p className={styles.itemDetails}>
+                            브랜드: {item.brand}
+                        </p>
                         <button
                             onClick={() => handleConfirmPurchase(item.itemId)}
-                            className="purchase-button"
-                            disabled={item.isPurchased} // 구매 확정된 경우 버튼 비활성화
+                            className={styles.purchaseButton}
+                            disabled={item.isPurchased}
                         >
                             {item.isPurchased ? "구매 확정 완료" : "구매 확정"}
                         </button>
                         <button
                             onClick={() => handleOpenReviewModal(item)}
-                            className="review-button"
+                            className={styles.reviewButton}
                         >
                             리뷰 남기기
                         </button>
                         <button
                             onClick={() => handleOpenRecommendations(item.itemId)}
-                            className="recommendation-button"
+                            className={styles.recommendationButton}
                         >
                             추천 제품 보기
                         </button>
@@ -166,32 +197,40 @@ const ReviewPage = () => {
 
             {/* 리뷰 모달 */}
             {selectedItem && (
-                <div className="modal">
-                    <div className="modal-content">
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
                         <h3>{selectedItem.itemName}</h3>
                         <p>별점을 입력해주세요:</p>
-                        <div className="rating-input">
+                        <div className={styles.ratingInput}>
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <span
                                     key={star}
-                                    className={`star ${star <= rating ? "selected" : ""}`}
+                                    className={`${styles.star} ${
+                                        star <= rating ? styles.selected : ""
+                                    }`}
                                     onClick={() => setRating(star)}
                                 >
-                                ★
-                            </span>
+                                    ★
+                                </span>
                             ))}
                         </div>
                         <textarea
                             value={review}
                             onChange={(e) => setReview(e.target.value)}
                             placeholder="리뷰를 작성해주세요"
-                            className="review-textarea"
+                            className={styles.reviewTextarea}
                         />
-                        <div className="modal-buttons">
-                            <button onClick={handleSaveReview} className="save-button">
+                        <div className={styles.modalButtons}>
+                            <button
+                                onClick={handleSaveReview}
+                                className={styles.saveButton}
+                            >
                                 저장하기
                             </button>
-                            <button onClick={handleCloseReviewModal} className="cancel-button">
+                            <button
+                                onClick={handleCloseReviewModal}
+                                className={styles.cancelButton}
+                            >
                                 취소
                             </button>
                         </div>
@@ -199,44 +238,71 @@ const ReviewPage = () => {
                 </div>
             )}
 
+            {/* 추천 모달 */}
             {showRecommendations && recommendations && Object.keys(recommendations).length > 0 && (
-                <div className="recommendation-modal">
-                    <div className="recommendation-modal-content">
-                        <h3>추천 제품 목록</h3>
-                        <div className="recommendation-grid">
-                            {Object.entries(recommendations).map(([category, products]) => {
-                                const product = products[0];
-                                if (!product) return null; // 추천 제품이 없는 경우 건너뜀
-                                return (
-                                    <div
-                                        key={category}
-                                        className="recommendation-item"
-                                        onClick={() => window.open(product.itemLink, "_blank")}
-                                    >
-                                        <img
-                                            src={product.itemImageUrl}
-                                            alt={product.itemName}
-                                            className="recommendation-image"
-                                        />
-                                        <p>{product.itemName}</p>
-                                        <button
-                                            onClick={() => handleConfirmPurchase(product.itemId)}
-                                            className="purchase-button"
-                                            disabled={product.isPurchased} // 구매 확정된 경우 버튼 비활성화
+                <div className={styles.recommendationModal}>
+                    <div className={styles.recommendationModalContent}>
+                        <div className={styles.recommendationGrid}>
+                            {Object.entries(recommendations).map(
+                                ([category, products]) => {
+                                    const product = products[0];
+                                    if (!product) return null;
+                                    return (
+                                        <div
+                                            key={category}
+                                            className={
+                                                styles.recommendationItem
+                                            }
+                                            onClick={() =>
+                                                window.open(
+                                                    product.itemLink,
+                                                    "_blank"
+                                                )
+                                            }
                                         >
-                                            {product.isPurchased ? "구매 확정 완료" : "구매 확정"}
-                                        </button>
-                                    </div>
-                                );
-                            })}
+                                            <img
+                                                src={product.itemImageUrl}
+                                                alt={product.itemName}
+                                                className={
+                                                    styles.recommendationImage
+                                                }
+                                            />
+                                            <p
+                                                onClick={(e) => e.stopPropagation()}
+                                            >{product.itemName}</p>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleConfirmPurchase(
+                                                        product.itemId
+                                                    )
+                                                }}
+                                                className={
+                                                    styles.purchaseButton
+                                                }
+                                                disabled={product.isPurchased}
+                                            >
+                                                {product.isPurchased
+                                                    ? "구매 확정 완료"
+                                                    : "구매 확정"}
+                                            </button>
+                                        </div>
+                                    );
+                                }
+                            )}
                         </div>
-                        <button onClick={handleCloseRecommendations} className="cancel-button">
+                        <button
+                            onClick={handleCloseRecommendations}
+                            className={styles.cancelButton}
+                        >
                             닫기
                         </button>
                     </div>
                 </div>
             )}
         </div>
+
     );
-}
+};
+
 export default ReviewPage;

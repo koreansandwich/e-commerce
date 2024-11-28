@@ -1,0 +1,286 @@
+
+/* 에러 메시지 */
+.errorMessage {
+    color: red;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* 제품 카드 그리드 */
+.itemsGrid {
+    display: grid;
+    position: absolute;
+    top: 13%;
+    grid-template-columns: repeat(3, 1fr); /* 반응형 레이아웃 */
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* 각 제품 카드 */
+.itemCard {
+    background-color: #ffffff; /* 흰색 배경 */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.itemCard:hover {
+    transform: translateY(-5px); /* 호버 시 위로 살짝 떠오름 */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 그림자 강조 */
+}
+
+.itemImage {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.itemTitle {
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.itemDetails {
+    font-size: 14px;
+    color: #555;
+    margin: 5px 0;
+}
+
+/* 각 제품 카드 버튼 스타일 */
+.actionButton {
+    display: block; /* 버튼을 독립적으로 배치 */
+    margin: 10px auto;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    width: 150px;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* 부드러운 효과 */
+}
+
+.purchaseButton {
+    margin-top: 5px;
+    padding: 5px 10px;
+    font-size: 15px;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 200px;
+}
+
+.purchaseButton:hover {
+    background-color: #218838;
+}
+
+.reviewButton {
+    background-color: #6c63ff;
+    color: white;
+    margin-top: 5px;
+    padding: 5px 10px;
+    font-size: 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 200px;
+}
+
+.reviewButton:hover {
+    background-color: #5a54d8;
+}
+
+.recommendationButton {
+    background-color: #ffa500;
+    color: white;
+    margin-top: 5px;
+    padding: 5px 10px;
+    font-size: 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 200px;
+}
+
+.recommendationButton:hover {
+    background-color: #e59400;
+}
+
+/* 모달 공통 스타일 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* 반투명 검은 배경 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.modalContent h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* 별점 입력 */
+.ratingInput {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.star {
+    font-size: 24px;
+    color: #ccc; /* 기본 별 색상 */
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.star.selected {
+    color: #ffc107; /* 선택된 별 색상 */
+}
+
+.star:hover {
+    color: #ffdd57; /* 호버된 별 색상 */
+}
+
+/* 리뷰 입력창 */
+.reviewTextarea {
+    width: 80%;
+    height: 80px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: none; /* 크기 조절 비활성화 */
+    margin-bottom: 20px;
+}
+
+/* 모달 버튼 */
+.modalButtons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.saveButton,
+.cancelButton {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.saveButton {
+    background-color: #6c63ff;
+    color: white;
+}
+
+.saveButton:hover {
+    background-color: #5a54d8;
+}
+
+.cancelButton {
+    background-color: #ccc;
+    color: #333;
+    width: 250px;
+}
+
+.cancelButton:hover {
+    background-color: #aaa;
+}
+
+/* 추천 모달 */
+.recommendationModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.recommendationModalContent {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 1000px;
+    text-align: center;
+}
+
+.recommendationGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.recommendationItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recommendationItem:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recommendationImage {
+    width: 100%;
+    max-width: 120px;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.recommendationItem p {
+    font-size: 14px;
+    color: #333;
+    text-align: center;
+    margin: 0;
+}
+
+

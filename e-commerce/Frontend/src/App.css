@@ -13,6 +13,7 @@ body {
   text-align: center;
   background: linear-gradient(to bottom, #6c63ff, #c6bffb); /* 배경을 그라디언트로 설정 */
   min-height: 100vh; /* 화면 전체 높이를 채우도록 설정 */
+  height: auto;
   width: 100vw;
   display: flex;
   justify-content: center;
