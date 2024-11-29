@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./Settings.css";
+import styles from "./Settings.module.css";
 
 const Settings = () => {
     const [userData, setUserData] = useState({ email: '', name: '', birthDate: '', gender: '' });
@@ -20,22 +20,18 @@ const Settings = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
 
     useEffect(() => {
-        const token = localStorage.getItem("token"); // JWT 토큰 가져오기
+        const token = localStorage.getItem("token");
         if (!token) {
-            console.error("No token found. Please log in again.");
             alert("로그인이 필요합니다. 다시 로그인해 주세요.");
             window.location.href = "/login";
             return;
         }
 
-        // 사용자 정보를 가져오는 API 호출
         axios
             .get("http://localhost:8080/api/settings/account", {
-                headers: { Authorization: `Bearer ${token}` }, // Authorization 헤더에 토큰 추가
+                headers: { Authorization: `Bearer ${token}` },
             })
-            .then((response) => {
-                setUserData(response.data);
-            })
+            .then((response) => setUserData(response.data))
             .catch((error) => {
                 console.error("사용자 정보 가져오기 오류:", error);
                 alert("사용자 정보를 불러오지 못했습니다. 다시 시도해 주세요.");
@@ -47,7 +43,6 @@ const Settings = () => {
         if (file) {
             setProfileImage(URL.createObjectURL(file));
             alert("프로필 사진이 업로드되었습니다.");
-            // 프로필 이미지 업로드 API 호출 추가 가능
         }
     };
 
@@ -63,16 +58,13 @@ const Settings = () => {
             .delete("http://localhost:8080/api/settings/reset-history", {
                 headers: { Authorization: `Bearer ${token}` },
             })
-            .then(() => {
-                alert("기록이 초기화되었습니다.");
-            })
+            .then(() => alert("기록이 초기화되었습니다."))
             .catch((error) => {
                 console.error("기록 초기화 실패:", error);
                 alert("기록 초기화에 실패했습니다. 다시 시도해주세요.");
             });
     };
 
-    // Handlers for Edit Account Modal
     const handleOpenEditAccount = () => {
         setNewName(userData.name);
         setNewBirthDate(userData.birthDate);
@@ -94,14 +86,8 @@ const Settings = () => {
         axios
             .put(
                 `http://localhost:8080/api/settings/account/${userData.id}`,
-                {
-                    name: newName,
-                    birthDate: newBirthDate,
-                    gender: newGender,
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
+                { name: newName, birthDate: newBirthDate, gender: newGender },
+                { headers: { Authorization: `Bearer ${token}` } }
             )
             .then((response) => {
                 alert("계정 정보가 성공적으로 업데이트되었습니다.");
@@ -114,7 +100,6 @@ const Settings = () => {
             });
     };
 
-    // Handlers for Change Password Modal
     const handleOpenChangePassword = () => {
         setCurrentPassword("");
         setNewPassword("");
@@ -141,13 +126,8 @@ const Settings = () => {
         axios
             .put(
                 "http://localhost:8080/api/settings/account/password",
-                {
-                    currentPassword: currentPassword,
-                    newPassword: newPassword,
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
+                { currentPassword, newPassword },
+                { headers: { Authorization: `Bearer ${token}` } }
             )
             .then(() => {
                 alert("비밀번호가 성공적으로 변경되었습니다.");
@@ -160,14 +140,14 @@ const Settings = () => {
     };
 
     return (
-        <div className="settings-container">
-            <h2>Settings</h2>
-            <div className="profile-image">
+        <div className={styles.settingsContainer}>
+            <h2 className={styles.title}>설정</h2>
+            <div className={styles.profileImage}>
                 <img
-                    src={"https://koreansandwich-ecommerce-item-image.s3-ap-southeast-2.amazonaws.com/cute-profile-image.png"} // 기본 이미지 또는 업로드된 이미지
+                    src="https://koreansandwich-ecommerce-item-image.s3-ap-southeast-2.amazonaws.com/cute-profile-image.png"
                     alt="Profile"
                 />
-                <label htmlFor="profile-upload" className="edit-profile-button">
+                <label htmlFor="profile-upload" className={styles.editProfileButton}>
                     Edit
                 </label>
                 <input
@@ -175,36 +155,34 @@ const Settings = () => {
                     id="profile-upload"
                     accept="image/*"
                     onChange={handleProfileImageUpload}
-                    style={{display: "none"}}
+                    style={{ display: "none" }}
                 />
             </div>
-            <div className="profile-actions">
-                <h3>Account Information</h3>
-                <p><strong>Email:</strong> {userData.email}</p>
-                <p><strong>Name:</strong> {userData.name}</p>
-                <p><strong>Birth Date:</strong> {userData.birthDate}</p>
-                <p><strong>Gender:</strong> {userData.gender}</p>
+            <div className={styles.profileActions}>
+                <p><strong>이메일:</strong> {userData.email}</p>
+                <p><strong>이름:</strong> {userData.name}</p>
+                <p><strong>생년월일:</strong> {userData.birthDate}</p>
+                <p><strong>성별:</strong> {userData.gender}</p>
             </div>
-            <div className="actions-buttons">
-                <button onClick={handleOpenEditAccount} className="edit-account-button">Edit Account Info</button>
-                <button onClick={handleOpenChangePassword} className="change-password-button">Change Password</button>
+            <div className={styles.actionsButtons}>
+                <button onClick={handleOpenEditAccount} className={styles.editAccountButton}>회원정보 수정</button>
+                <button onClick={handleOpenChangePassword} className={styles.changePasswordButton}>비밀번호 수정</button>
             </div>
-            <div className="reset-history">
+            <div className={styles.resetHistory}>
                 <button
-                    className="reset-history-button"
+                    className={styles.resetHistoryButton}
                     onClick={() => setShowResetModal(true)}
                 >
                     기록 초기화
                 </button>
             </div>
 
-            {/* Edit Account Modal */}
             {isEditModalOpen && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h3>Edit Account Information</h3>
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <h3>회원정보 수정</h3>
                         <label>
-                            Name:
+                            이름&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                             <input
                                 type="text"
                                 value={newName}
@@ -212,43 +190,42 @@ const Settings = () => {
                             />
                         </label>
                         <label>
-                            Birth Date:
+                            생년월일
                             <input
                                 type="date"
                                 value={newBirthDate}
                                 onChange={(e) => setNewBirthDate(e.target.value)}
                             />
                         </label>
-                        <label>Gender:</label>
-                        <div className="gender-buttons">
+                        <label>성별</label>
+                        <div className={styles.genderButtons}>
                             <button
-                                className={`gender-button ${newGender === "남성" ? "selected" : ""}`}
+                                className={`${styles.genderButton} ${newGender === "남성" ? styles.selected : ""}`}
                                 onClick={() => setNewGender("남성")}
                             >
                                 남성
                             </button>
                             <button
-                                className={`gender-button ${newGender === "여성" ? "selected" : ""}`}
+                                className={`${styles.genderButton} ${newGender === "여성" ? styles.selected : ""}`}
                                 onClick={() => setNewGender("여성")}
                             >
                                 여성
                             </button>
                         </div>
-                        <div className="modal-buttons">
-                            <button onClick={handleSaveEditAccount} className="save-button">Save</button>
-                            <button onClick={handleCloseEditAccount} className="cancel-button">Cancel</button>
+                        <div className={styles.modalButtons}>
+                            <button onClick={handleSaveEditAccount} className={styles.saveButton}>저장</button>
+                            <button onClick={handleCloseEditAccount} className={styles.cancelButton}>취소</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Change Password Modal */}
             {isChangePasswordModalOpen && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h3>Change Password</h3>
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <h3>비밀번호 변경</h3>
                         <label>
-                            Current Password:
+                            현재 비밀번호&nbsp;&nbsp;&nbsp;&nbsp;
                             <input
                                 type="password"
                                 value={currentPassword}
@@ -256,7 +233,7 @@ const Settings = () => {
                             />
                         </label>
                         <label>
-                            New Password:
+                            새 비밀번호&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                             <input
                                 type="password"
                                 value={newPassword}
@@ -264,40 +241,29 @@ const Settings = () => {
                             />
                         </label>
                         <label>
-                            Confirm New Password:
+                            새 비밀번호 확인
                             <input
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                             />
                         </label>
-                        <div className="modal-buttons">
-                            <button onClick={handleChangePassword} className="save-button">Change Password</button>
-                            <button onClick={handleCloseChangePassword} className="cancel-button">Cancel</button>
+                        <div className={styles.modalButtons}>
+                            <button onClick={handleChangePassword} className={styles.saveButton}>저장</button>
+                            <button onClick={handleCloseChangePassword} className={styles.cancelButton}>취소</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* 기록 초기화 확인 모달 */}
             {showResetModal && (
-                <div className="modal">
-                    <div className="modal-content">
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
                         <h3>정말 기록을 초기화하시겠습니까?</h3>
                         <p>챗봇 내역과 제품 내역이 모두 삭제됩니다.</p>
-                        <div className="modal-buttons">
-                            <button
-                                className="confirm-button"
-                                onClick={handleResetHistory}
-                            >
-                                확인
-                            </button>
-                            <button
-                                className="cancel-button"
-                                onClick={() => setShowResetModal(false)}
-                            >
-                                취소
-                            </button>
+                        <div className={styles.modalButtons}>
+                            <button className={styles.confirmButton} onClick={handleResetHistory}>확인</button>
+                            <button className={styles.cancelButton} onClick={() => setShowResetModal(false)}>취소</button>
                         </div>
                     </div>
                 </div>
